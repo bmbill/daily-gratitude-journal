@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#5b4a3f" />
+  <title>修信念恩日記</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#f5f0eb; --card:#fff; --text:#2c2416; --muted:#7a6f62;
+      --accent:#8b6f47; --accent-lt:#c4a97d; --accent-bg:#f0e6d8;
+      --border:#e0d6c8; --shadow:rgba(90,70,40,.08); --r:12px;
+      --green:#5a8a5e; --green-bg:#e8f5e9;
+    }
+    html { font-size:16px; -webkit-text-size-adjust:100%; }
+    body {
+      font-family:"Noto Sans TC","Source Han Sans TC",system-ui,sans-serif;
+      background:var(--bg); color:var(--text); line-height:1.7;
+      min-height:100dvh; -webkit-font-smoothing:antialiased;
+    }
+    #app { max-width:640px; margin:0 auto; padding:16px 16px env(safe-area-inset-bottom,16px); }
+
+    /* Header */
+    .hd { text-align:center; padding:20px 0 10px; }
+    .hd h1 { font-family:"Noto Serif TC",serif; font-size:1.4rem; font-weight:700; color:var(--accent); letter-spacing:.04em; }
+    .hd .date { font-size:.83rem; color:var(--muted); margin-top:3px; }
+
+    /* User bar */
+    .user-bar {
+      display:flex; align-items:center; gap:8px;
+      background:var(--card); border-radius:var(--r); padding:10px 14px;
+      box-shadow:0 1px 6px var(--shadow); margin-bottom:16px;
+    }
+    .user-bar label { font-size:.82rem; color:var(--muted); white-space:nowrap; }
+    .user-bar input {
+      flex:1; border:1px solid var(--border); border-radius:8px;
+      padding:6px 10px; font-size:.9rem; font-family:inherit; color:var(--text);
+      background:var(--bg); outline:none; min-width:0;
+    }
+    .user-bar input:focus { border-color:var(--accent); }
+    .user-bar .btn-sm {
+      padding:6px 14px; border:none; border-radius:8px;
+      font-size:.82rem; font-weight:600; cursor:pointer;
+      background:var(--accent); color:#fff; white-space:nowrap;
+      font-family:inherit; transition:background .2s;
+    }
+    .user-bar .btn-sm:hover { background:#7a5e38; }
+    .user-bar .btn-sm:disabled { opacity:.5; cursor:not-allowed; }
+
+    /* Stats */
+    .stats-grid {
+      display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:16px;
+    }
+    .stat-card {
+      background:var(--card); border-radius:var(--r); padding:10px 8px;
+      text-align:center; box-shadow:0 1px 6px var(--shadow);
+    }
+    .stat-val { font-size:1.3rem; font-weight:700; color:var(--accent); }
+    .stat-lbl { font-size:.7rem; color:var(--muted); margin-top:2px; }
+
+    /* Collapsible Section */
+    .sec { margin-bottom:14px; }
+    .sec-tog {
+      width:100%; display:flex; align-items:center; justify-content:space-between;
+      padding:13px 16px; background:var(--card); border:none;
+      border-radius:var(--r); box-shadow:0 2px 8px var(--shadow);
+      cursor:pointer; font-family:inherit; text-align:left; transition:background .2s;
+    }
+    .sec-tog:hover { background:#faf6f1; }
+    .sec-tog .lr { display:flex; align-items:center; gap:8px; }
+    .sec-tog .tag {
+      font-size:.68rem; font-weight:600; color:var(--accent);
+      background:var(--accent-bg); padding:2px 8px; border-radius:12px; white-space:nowrap;
+    }
+    .sec-tog .tag.done { background:var(--green-bg); color:var(--green); }
+    .sec-tog .tt { font-family:"Noto Serif TC",serif; font-size:1rem; font-weight:600; color:var(--text); }
+    .sec-tog .arr { font-size:1rem; color:var(--muted); transition:transform .3s; flex-shrink:0; }
+    .sec-tog.open .arr { transform:rotate(180deg); }
+
+    .sec-body {
+      max-height:0; overflow:hidden;
+      transition:max-height .4s ease, padding .3s ease;
+      background:var(--card); border-radius:0 0 var(--r) var(--r);
+      box-shadow:0 2px 8px var(--shadow); margin-top:-4px;
+    }
+    .sec-body.open { max-height:4000px; padding:14px 16px 16px; }
+
+    /* Passage */
+    .pq {
+      font-family:"Noto Serif TC",serif; font-size:1.02rem; line-height:1.9;
+      padding:12px 14px; background:var(--accent-bg);
+      border-left:3px solid var(--accent); border-radius:0 var(--r) var(--r) 0;
+      margin-bottom:12px;
+    }
+    .pq span.r { color:#8b4513; font-weight:600; }
+    .pe { font-size:.93rem; line-height:1.85; max-height:220px; overflow-y:auto; padding-right:4px; }
+    .pe.expanded { max-height:none; }
+    .te { display:inline-block; font-size:.83rem; color:var(--accent); cursor:pointer; margin-top:6px; border:none; background:none; padding:2px 0; }
+    .te:hover { text-decoration:underline; }
+
+    /* Passage Nav */
+    .pnav {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:12px; gap:8px;
+    }
+    .pnav-btn {
+      display:flex; align-items:center; justify-content:center;
+      width:34px; height:34px; border-radius:50%; border:1.5px solid var(--border);
+      background:var(--card); color:var(--accent); cursor:pointer;
+      font-size:1rem; flex-shrink:0; transition:all .2s; font-family:inherit;
+    }
+    .pnav-btn:hover { background:var(--accent-bg); border-color:var(--accent); }
+    .pnav-btn:active { transform:scale(.93); }
+    .pnav-btn:disabled { opacity:.3; cursor:not-allowed; }
+    .pnav-btn:disabled:hover { background:var(--card); border-color:var(--border); }
+    .pnav-info {
+      font-size:.75rem; color:var(--muted); text-align:center; flex:1;
+    }
+
+    /* Audio */
+    .ac { display:flex; align-items:center; gap:10px; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); }
+    .ab {
+      display:flex; align-items:center; justify-content:center;
+      width:40px; height:40px; border-radius:50%;
+      border:2px solid var(--accent); background:transparent;
+      color:var(--accent); cursor:pointer; flex-shrink:0; transition:all .2s;
+    }
+    .ab:hover { background:var(--accent-bg); }
+    .ab svg { width:17px; height:17px; fill:currentColor; }
+    .ai { font-size:.78rem; color:var(--muted); }
+    .ai .tid { font-weight:600; color:var(--accent); }
+
+    /* Journal Card */
+    .jc {
+      background:var(--card); border-radius:var(--r);
+      box-shadow:0 2px 10px var(--shadow); padding:18px; margin-bottom:14px;
+    }
+    .jc .cl {
+      display:inline-block; font-size:.72rem; font-weight:600; color:var(--accent);
+      background:var(--accent-bg); padding:2px 9px; border-radius:14px; margin-bottom:12px;
+    }
+    .ja {
+      width:100%; min-height:200px; border:1px solid var(--border); border-radius:var(--r);
+      padding:12px; font-family:inherit; font-size:1rem; line-height:1.8;
+      color:var(--text); background:var(--card); resize:vertical; outline:none;
+    }
+    .ja:focus { border-color:var(--accent); }
+    .ja::placeholder { color:var(--muted); opacity:.6; }
+    .jh { font-size:.78rem; color:var(--muted); margin-top:6px; text-align:right; }
+    .bs {
+      display:block; width:100%; padding:12px; border:none; border-radius:var(--r);
+      font-size:1rem; font-weight:600; cursor:pointer; font-family:inherit;
+      margin-top:12px; background:var(--accent); color:#fff; transition:all .2s;
+    }
+    .bs:hover { background:#7a5e38; }
+    .bs:active { transform:scale(.98); }
+    .bs:disabled { opacity:.5; cursor:not-allowed; }
+
+    /* Status */
+    .sm { text-align:center; font-size:.83rem; padding:8px; border-radius:8px; margin-top:10px; animation:fi .3s ease; }
+    .sm.ok { color:#4a7c59; background:#e8f5e9; }
+    .sm.err { color:#8b3a3a; background:#fde8e8; }
+    .sm.inf { color:var(--accent); background:var(--accent-bg); }
+    @keyframes fi { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+    /* History */
+    .hs { margin-top:20px; }
+    .hs h3 { font-family:"Noto Serif TC",serif; font-size:1rem; color:var(--accent); margin-bottom:10px; }
+    .he {
+      background:var(--card); border-radius:var(--r); padding:12px;
+      margin-bottom:8px; box-shadow:0 1px 4px var(--shadow);
+    }
+    .he-top { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:6px; }
+    .he-date { font-size:.78rem; color:var(--muted); }
+    .he-badge {
+      font-size:.65rem; padding:1px 6px; border-radius:8px; font-weight:600;
+    }
+    .he-badge.g { background:var(--green-bg); color:var(--green); }
+    .he-badge.m { background:#fff3e0; color:#bf6c00; }
+    .he-chars { font-size:.72rem; color:var(--muted); margin-left:auto; }
+    .he-text { font-size:.88rem; line-height:1.65; white-space:pre-wrap;
+      max-height:80px; overflow:hidden; position:relative; }
+    .he-text.expanded { max-height:none; }
+
+    .loading { text-align:center; padding:48px 20px; color:var(--muted); }
+    .spinner {
+      display:inline-block; width:30px; height:30px;
+      border:3px solid var(--border); border-top-color:var(--accent);
+      border-radius:50%; animation:sp .8s linear infinite; margin-bottom:10px;
+    }
+    @keyframes sp { to{transform:rotate(360deg)} }
+
+    .config-note {
+      text-align:center; font-size:.78rem; color:var(--muted);
+      background:var(--accent-bg); padding:8px 12px; border-radius:var(--r);
+      margin-bottom:14px; line-height:1.5;
+    }
+    .config-note code { background:#e0d6c8; padding:1px 5px; border-radius:4px; font-size:.75rem; }
+
+    /* Bottom Tab Bar */
+    .tab-bar {
+      position:fixed; bottom:0; left:0; right:0;
+      display:flex; background:var(--card);
+      border-top:1px solid var(--border);
+      box-shadow:0 -2px 8px var(--shadow);
+      z-index:100;
+      padding-bottom:env(safe-area-inset-bottom,0);
+    }
+    .tab-bar button {
+      flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+      padding:8px 0 6px; border:none; background:none;
+      font-family:inherit; font-size:.72rem; color:var(--muted);
+      cursor:pointer; transition:color .2s;
+    }
+    .tab-bar button.active { color:var(--accent); font-weight:600; }
+    .tab-bar button svg { width:22px; height:22px; fill:currentColor; }
+    #app { padding-bottom:70px; }
+
+    /* Calendar */
+    .cal-hd {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:12px;
+    }
+    .cal-hd .cal-title { font-family:"Noto Serif TC",serif; font-size:1.05rem; font-weight:600; color:var(--text); }
+    .cal-hd button {
+      width:32px; height:32px; border-radius:50%; border:1.5px solid var(--border);
+      background:var(--card); color:var(--accent); cursor:pointer; font-size:.9rem;
+      display:flex; align-items:center; justify-content:center; transition:all .2s;
+    }
+    .cal-hd button:hover { background:var(--accent-bg); }
+    .cal-grid {
+      display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:16px;
+    }
+    .cal-wk {
+      text-align:center; font-size:.7rem; color:var(--muted); font-weight:600; padding:4px 0;
+    }
+    .cal-day {
+      aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      border-radius:10px; font-size:.82rem; color:var(--muted); position:relative;
+      cursor:default; transition:all .15s;
+    }
+    .cal-day.empty { visibility:hidden; }
+    .cal-day.today { font-weight:700; color:var(--accent); border:1.5px solid var(--accent); }
+    .cal-day.has-entry { background:var(--green-bg); color:var(--green); font-weight:600; cursor:pointer; }
+    .cal-day.has-entry:hover { background:#c8e6c9; transform:scale(1.08); }
+    .cal-day.selected { background:var(--accent); color:#fff !important; }
+    .cal-dots { display:flex; gap:2px; margin-top:2px; }
+    .cal-dot { width:4px; height:4px; border-radius:50%; }
+    .cal-dot.dh { background:var(--accent); }
+    .cal-dot.df { background:var(--green); }
+    .cal-dot.dj { background:#bf6c00; }
+
+    /* Detail card */
+    .det-card {
+      background:var(--card); border-radius:var(--r); padding:16px;
+      box-shadow:0 2px 10px var(--shadow); margin-bottom:14px;
+      animation:fi .3s ease;
+    }
+    .det-hd { display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+    .det-date { font-family:"Noto Serif TC",serif; font-size:1rem; font-weight:600; color:var(--text); }
+    .det-time { font-size:.82rem; color:var(--muted); }
+    .det-badges { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px; }
+    .det-passage { font-size:.85rem; color:var(--muted); margin-bottom:8px; line-height:1.6; }
+    .det-passage strong { color:var(--accent); font-weight:600; }
+    .det-text { font-size:.93rem; line-height:1.8; white-space:pre-wrap; padding:12px;
+      background:var(--accent-bg); border-radius:8px; }
+    .det-close {
+      display:inline-block; font-size:.82rem; color:var(--accent); cursor:pointer;
+      border:none; background:none; padding:4px 0; margin-top:8px;
+    }
+    .det-close:hover { text-decoration:underline; }
+    .rec-empty { text-align:center; color:var(--muted); padding:40px 20px; font-size:.9rem; }
+
+    @media(max-width:400px) {
+      #app { padding:12px; padding-bottom:70px; }
+      .stats-grid { grid-template-columns:repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+<div id="app"><div class="loading"><div class="spinner"></div><div>載入中…</div></div></div>
+
+<!-- Bottom Tab Bar -->
+<div class="tab-bar" id="tabBar" style="display:none;">
+  <button id="tabHome" class="active" title="主頁">
+    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    主頁
+  </button>
+  <button id="tabRec" title="紀錄">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+    紀錄
+  </button>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   設定區 — 部署 Apps Script 後填入下面兩個值
+   ═══════════════════════════════════════════════════ */
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwNhFE8jL3zgyoI3uXFEhHZe9nEn6bbQR2HfLI-lEMOngRWSycSzDXh1AF6cUyHBzhMUA/exec';   // 貼上你的 Apps Script 部署網址
+const API_KEY = 'bmbill';   // 與 Apps Script 指令碼屬性裡的 API_KEY 一致
+
+/* ── helpers ── */
+const PLAY='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+const STOP='<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>';
+const ARR='&#9662;';
+const CDN='https://cdn.amec.amrtf.org/volume/B000027';
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function todayISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function todayFmt(){const d=new Date(),w=['日','一','二','三','四','五','六'];return d.getFullYear()+' 年 '+(d.getMonth()+1)+' 月 '+d.getDate()+' 日（'+w[d.getDay()]+'）';}
+function hash(s){let h=0;for(let i=0;i<s.length;i++)h=(Math.imul(31,h)+s.charCodeAt(i))|0;return Math.abs(h);}
+function pid(p){return p.pageSlug+'-'+p.entryIndex;}
+function apiOk(){return !!GAS_URL&&!!API_KEY;}
+
+/* ── Audio ── */
+let cAud=null,cPlan=[],cIdx=0,aCb=null;
+function aPlay(){return cAud&&!cAud.paused;}
+function aStop(){if(cAud){cAud.pause();cAud.src='';cAud=null;}cPlan=[];cIdx=0;}
+function aPlan(plan,cb){aStop();if(!plan||!plan.length)return;cPlan=plan;cIdx=0;aCb=cb||null;aStep();}
+function aStep(){
+  const s=cPlan[cIdx];if(!s){aCb&&aCb();return;}
+  const a=new Audio(CDN+'/'+s.pageSlug+'-48kHz-64kbs.mp3');cAud=a;
+  a.addEventListener('loadedmetadata',()=>{a.currentTime=s.startSec;a.play().catch(()=>{});});
+  a.addEventListener('timeupdate',()=>{if(s.endSec!==null&&a.currentTime>=s.endSec){a.pause();nx();}});
+  a.addEventListener('ended',nx);a.addEventListener('error',nx);
+  function nx(){cIdx++;cIdx<cPlan.length?aStep():(aCb&&aCb());}
+}
+
+/* ── Passage selection ── */
+function pickH(d){return d.hearingBenefits[hash(todayISO()+'_h')%d.hearingBenefits.length];}
+function pickF(d){
+  const t=todayISO(),n=d.faithGratitude.length;let idx=0,sd=t;
+  try{const i=localStorage.getItem('dn_fi'),s=localStorage.getItem('dn_fs');
+    if(i!==null&&s!==null){idx=parseInt(i,10);sd=s;}}catch(e){}
+  const diff=Math.floor((new Date(t)-new Date(sd))/864e5);
+  if(diff>=3){idx=(idx+Math.floor(diff/3))%n;const rem=diff%3,ns=new Date(new Date(t).getTime()-rem*864e5);
+    sd=ns.getFullYear()+'-'+String(ns.getMonth()+1).padStart(2,'0')+'-'+String(ns.getDate()).padStart(2,'0');
+    try{localStorage.setItem('dn_fi',String(idx));localStorage.setItem('dn_fs',sd);}catch(e){}}
+  else if(diff<0){try{localStorage.setItem('dn_fs',t);}catch(e){}}
+  return d.faithGratitude[idx%n];
+}
+function fDay(){try{const s=localStorage.getItem('dn_fs');if(s)return(Math.floor((new Date(todayISO())-new Date(s))/864e5)%3)+1;}catch(e){}return 1;}
+
+/* ── API ── */
+async function api(body){
+  if(!apiOk())return{ok:false,error:'API 未設定'};
+  try{
+    const r=await fetch(GAS_URL,{method:'POST',mode:'cors',
+      headers:{'Content-Type':'text/plain;charset=UTF-8'},
+      body:JSON.stringify({apiKey:API_KEY,...body})});
+    const t=await r.text();let j;try{j=JSON.parse(t);}catch(e){return{ok:false,error:'解析失敗'};}
+    if(j.ok===true)return{ok:true,data:j.data};
+    return{ok:false,error:j.error||'未知錯誤'};
+  }catch(e){return{ok:false,error:String(e)};}
+}
+
+/* ── State ── */
+let passData=null, hP=null, fP=null;
+let hIdx=0, fIdx=0;   // current passage index within each array
+let userName='';
+let stats=null, entries=[];
+let didOpenHearing=false, didPlayHearing=false;
+let didOpenFaith=false, didPlayFaith=false;
+let currentTab='home'; // 'home' or 'records'
+let todayEntry=null; // loaded from server for editing
+let calMonth=null; // Date object for calendar navigation
+
+function loadUser(){try{return localStorage.getItem('dn_user')||'';}catch(e){return '';}}
+function saveUser(n){try{localStorage.setItem('dn_user',n);}catch(e){}}
+function loadDraft(){try{return localStorage.getItem('dn_dr')||'';}catch(e){return '';}}
+function saveDraft(t){try{localStorage.setItem('dn_dr',t);}catch(e){}}
+function clearDraft(){try{localStorage.removeItem('dn_dr');}catch(e){}}
+
+/* ── Build page ── */
+const app=document.getElementById('app');
+
+async function buildPage(){
+  const draft=loadDraft();
+  const saved=todayEntry?todayEntry.text:'';
+  const journalText=draft||saved;
+  const fd=fDay();
+
+  app.innerHTML=`
+    <header class="hd"><h1>修信念恩日記</h1><div class="date">${todayFmt()}</div></header>
+
+    ${!apiOk()?'<div class="config-note">離線模式 — 如需同步到 Google 試算表，請在 <code>index.html</code> 頂部填入 <code>GAS_URL</code> 和 <code>API_KEY</code></div>':''}
+
+    <!-- User bar -->
+    <div class="user-bar">
+      <label>使用者</label>
+      <input type="text" id="uName" value="${esc(userName)}" placeholder="輸入名字" />
+      <button class="btn-sm" id="uBtn">${userName?'切換':'設定'}</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" id="statsGrid">
+      ${statsHTML()}
+    </div>
+
+    <!-- 聽聞前行 -->
+    <div class="sec">
+      <button class="sec-tog" id="togH">
+        <div class="lr">
+          <span class="tag${didOpenHearing?' done':''}" id="tagH">${didOpenHearing?'已聽聞':'聽聞前行'}</span>
+          <span class="tt">思惟聞法勝利</span>
+        </div><span class="arr">${ARR}</span>
+      </button>
+      <div class="sec-body" id="bodyH">${passHTML(hP,'h')}</div>
+    </div>
+
+    <!-- 修信念恩 -->
+    <div class="sec">
+      <button class="sec-tog" id="togF">
+        <div class="lr">
+          <span class="tag${didOpenFaith?' done':''}" id="tagF">${didOpenFaith?'已聽聞':'第 '+fd+'/3 天'}</span>
+          <span class="tt">修信念恩</span>
+        </div><span class="arr">${ARR}</span>
+      </button>
+      <div class="sec-body" id="bodyF">${passHTML(fP,'f')}</div>
+    </div>
+
+    <!-- Journal -->
+    <div class="jc">
+      <span class="cl">修信念恩日記</span>
+      <textarea class="ja" id="jt" placeholder="${esc("今天聽聞了思惟聞法勝利和修信念恩的段落，\n有什麼感想或體會呢？\n\n可以記錄：\n· 哪句話觸動了你？\n· 聯想到生活中的什麼事？\n· 對師長的感恩之處…")}">${esc(journalText)}</textarea>
+      <div class="jh" id="cc">${journalText.length} 字${todayEntry?' · 已儲存過，再次儲存會更新':''}</div>
+      <button class="bs" id="saveBtn">${todayEntry?'更新日記':'儲存日記'}</button>
+      <div id="stA"></div>
+    </div>
+
+  `;
+
+  document.getElementById('tabBar').style.display='flex';
+  bind();
+}
+
+function statsHTML(){
+  const s=stats||{streak:0,weekDays:0,monthDays:0,avgChars:0,totalEntries:0,hearingCount:0,faithCount:0,journalCount:0};
+  return `
+    <div class="stat-card"><div class="stat-val">${s.streak}</div><div class="stat-lbl">連續天數</div></div>
+    <div class="stat-card"><div class="stat-val">${s.weekDays}</div><div class="stat-lbl">本週</div></div>
+    <div class="stat-card"><div class="stat-val">${s.monthDays}</div><div class="stat-lbl">本月</div></div>
+    <div class="stat-card"><div class="stat-val">${s.avgChars}</div><div class="stat-lbl">平均字數</div></div>
+  `;
+}
+
+function passHTML(p,id){
+  if(!p)return'';
+  const tape=p.tapeId?'第 '+p.tapeId+' 卷':'';
+  const long=p.explanationText&&p.explanationText.length>200;
+  const arr=id==='h'?passData.hearingBenefits:passData.faithGratitude;
+  const ci=id==='h'?hIdx:fIdx;
+  const total=arr.length;
+  return `
+    <div class="pnav">
+      <button class="pnav-btn" id="prev-${id}" title="上一段"${ci<=0?' disabled':''}>&#9664;</button>
+      <span class="pnav-info">${ci+1} / ${total}</span>
+      <button class="pnav-btn" id="next-${id}" title="下一段"${ci>=total-1?' disabled':''}>&#9654;</button>
+    </div>
+    <div class="pq" id="pq-${id}">${p.quoteHtml}</div>
+    <div class="pe" id="pe-${id}">${p.explanationHtml}</div>
+    ${long?'<button class="te" id="te-'+id+'">展開全文</button>':''}
+    <div class="ac">
+      <button class="ab" id="ab-${id}" title="播放師父開示音檔">${PLAY}</button>
+      <div class="ai" id="ai-${id}">${tape?'<span class="tid">'+tape+'</span> · ':''}師父開示音檔</div>
+    </div>`;
+}
+
+/* ── Event binding ── */
+function bind(){
+  // Toggle sections
+  bindTog('H','hearing');
+  bindTog('F','faith');
+
+  // Passage audio & expand
+  bindPass('h',hP,'hearing');
+  bindPass('f',fP,'faith');
+
+  // User bar
+  const uInput=document.getElementById('uName');
+  const uBtn=document.getElementById('uBtn');
+  uBtn.onclick=async()=>{
+    const n=uInput.value.trim();
+    if(!n){showSt('請輸入名字','err');return;}
+    userName=n; saveUser(n);
+    uBtn.disabled=true; uBtn.textContent='載入中…';
+    if(apiOk()){
+      const r=await api({action:'ensureUser',userName:n});
+      if(!r.ok){showSt('建立使用者失敗：'+r.error,'err');uBtn.disabled=false;uBtn.textContent='切換';return;}
+    }
+    await loadRemoteData();
+    buildPage();
+  };
+
+  // Journal
+  const ta=document.getElementById('jt');
+  const cc=document.getElementById('cc');
+  ta.oninput=()=>{cc.textContent=ta.value.length+' 字';saveDraft(ta.value);};
+
+  document.getElementById('saveBtn').onclick=async()=>{
+    if(!userName){showSt('請先設定使用者名稱','err');return;}
+    const text=ta.value.trim();
+    const btn=document.getElementById('saveBtn');
+    btn.disabled=true; btn.textContent='儲存中…';
+
+    if(apiOk()){
+      const r=await api({
+        action:'saveEntry', userName,
+        didHearing:didOpenHearing, didFaith:didOpenFaith,
+        didJournal:text.length>0,
+        journalText:text,
+        hearingId:hP?pid(hP):'', faithId:fP?pid(fP):'',
+        hearingQuote:hP?hP.quoteText.substring(0,100):'',
+        faithQuote:fP?fP.quoteText.substring(0,100):''
+      });
+      if(r.ok){
+        clearDraft(); showSt('已儲存到 Google 試算表！','ok');
+        ta.value=''; cc.textContent='0 字';
+        await loadRemoteData();
+        document.getElementById('statsGrid').innerHTML=statsHTML();
+      } else {
+        showSt('儲存失敗：'+r.error,'err');
+      }
+    } else {
+      // Local save
+      saveLocal(text);
+      clearDraft(); showSt('已儲存到本機！','ok');
+      ta.value=''; cc.textContent='0 字';
+      loadLocalData();
+      document.getElementById('statsGrid').innerHTML=statsHTML();
+    }
+    btn.disabled=false; btn.textContent='儲存日記';
+  };
+}
+
+function bindTog(id,which){
+  const tog=document.getElementById('tog'+id);
+  const body=document.getElementById('body'+id);
+  tog.onclick=()=>{
+    const opening=!body.classList.contains('open');
+    body.classList.toggle('open'); tog.classList.toggle('open');
+    if(opening){
+      // Mark as opened
+      if(which==='hearing'&&!didOpenHearing){didOpenHearing=true;updateTag('tagH','已聽聞');}
+      if(which==='faith'&&!didOpenFaith){didOpenFaith=true;updateTag('tagF','已聽聞');}
+    }
+    if(!opening){
+      const b=document.getElementById('ab-'+(id==='H'?'h':'f'));
+      if(aPlay()){aStop();if(b)b.innerHTML=PLAY;}
+    }
+  };
+}
+
+function updateTag(elId,text){
+  const el=document.getElementById(elId);
+  if(el){el.textContent=text;el.classList.add('done');}
+}
+
+function bindPass(id,p,which){
+  const btn=document.getElementById('ab-'+id);
+  const te=document.getElementById('te-'+id);
+  const pe=document.getElementById('pe-'+id);
+  if(btn&&p)btn.onclick=(e)=>{
+    e.stopPropagation();
+    if(aPlay()){aStop();btn.innerHTML=PLAY;}
+    else{
+      aPlan(p.audioPlan,()=>{btn.innerHTML=PLAY;});btn.innerHTML=STOP;
+      if(which==='hearing')didPlayHearing=true;
+      if(which==='faith')didPlayFaith=true;
+    }
+  };
+  if(te&&pe){let o=false;te.onclick=()=>{o=!o;pe.classList.toggle('expanded',o);te.textContent=o?'收合':'展開全文';};}
+
+  // Prev / Next navigation
+  const prevBtn=document.getElementById('prev-'+id);
+  const nextBtn=document.getElementById('next-'+id);
+  if(prevBtn)prevBtn.onclick=(e)=>{e.stopPropagation();navPass(id,which,-1);};
+  if(nextBtn)nextBtn.onclick=(e)=>{e.stopPropagation();navPass(id,which,1);};
+}
+
+function navPass(id,which,dir){
+  aStop(); // stop any playing audio
+  const arr=id==='h'?passData.hearingBenefits:passData.faithGratitude;
+  let ci=id==='h'?hIdx:fIdx;
+  ci+=dir;
+  if(ci<0)ci=0; if(ci>=arr.length)ci=arr.length-1;
+  if(id==='h'){hIdx=ci;hP=arr[ci];}else{fIdx=ci;fP=arr[ci];}
+
+  // Update DOM in place
+  const p=id==='h'?hP:fP;
+  const body=document.getElementById(id==='h'?'bodyH':'bodyF');
+  if(body){body.innerHTML=passHTML(p,id);}
+
+  // Rebind events for this section
+  bindPass(id,p,which);
+}
+
+/* ── Records Page (Calendar) ── */
+function buildRecords(){
+  aStop();
+  if(!calMonth)calMonth=new Date();
+  const now=new Date(), todStr=todayISO();
+
+  // Build date→entry map (use yyyy/MM/dd from sheet, convert to yyyy-MM-dd for comparison)
+  const eMap={};
+  entries.forEach(e=>{
+    const k=e.date.replace(/\//g,'-'); // normalise
+    eMap[k]=e;
+  });
+
+  const y=calMonth.getFullYear(), m=calMonth.getMonth();
+  const firstDay=new Date(y,m,1).getDay(); // 0=Sun
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const wks=['日','一','二','三','四','五','六'];
+
+  let calCells=wks.map(w=>`<div class="cal-wk">${w}</div>`).join('');
+  // Empty cells before 1st
+  for(let i=0;i<firstDay;i++)calCells+='<div class="cal-day empty"></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const e=eMap[ds];
+    const isToday=ds===todStr;
+    let cls='cal-day';
+    if(!e&&!isToday)cls+='';
+    if(e)cls+=' has-entry';
+    if(isToday)cls+=' today';
+    let dots='';
+    if(e){
+      dots='<div class="cal-dots">';
+      if(e.didHearing)dots+='<span class="cal-dot dh"></span>';
+      if(e.didFaith)dots+='<span class="cal-dot df"></span>';
+      if(e.didJournal)dots+='<span class="cal-dot dj"></span>';
+      dots+='</div>';
+    }
+    calCells+=`<div class="${cls}" data-date="${ds}">${d}${dots}</div>`;
+  }
+
+  app.innerHTML=`
+    <header class="hd"><h1>修信念恩日記</h1><div class="date">紀錄一覽</div></header>
+    <div class="stats-grid">${statsHTML()}</div>
+
+    <div style="background:var(--card);border-radius:var(--r);padding:16px;box-shadow:0 2px 8px var(--shadow);margin-bottom:14px;">
+      <div class="cal-hd">
+        <button id="calPrev" title="上個月">&#9664;</button>
+        <span class="cal-title">${y} 年 ${m+1} 月</span>
+        <button id="calNext" title="下個月">&#9654;</button>
+      </div>
+      <div class="cal-grid">${calCells}</div>
+    </div>
+
+    <div id="detailArea"></div>
+
+    ${entries.length===0?'<div class="rec-empty">尚無紀錄，開始寫日記吧！</div>':''}
+  `;
+
+  // Calendar nav
+  document.getElementById('calPrev').onclick=()=>{calMonth=new Date(y,m-1,1);buildRecords();};
+  document.getElementById('calNext').onclick=()=>{calMonth=new Date(y,m+1,1);buildRecords();};
+
+  // Day click → show detail
+  document.querySelectorAll('.cal-day.has-entry').forEach(el=>{
+    el.onclick=()=>{
+      document.querySelectorAll('.cal-day.selected').forEach(s=>s.classList.remove('selected'));
+      el.classList.add('selected');
+      const ds=el.dataset.date;
+      const e=eMap[ds];
+      if(e)showDetail(e);
+    };
+  });
+
+  document.getElementById('tabBar').style.display='flex';
+}
+
+function showDetail(e){
+  const area=document.getElementById('detailArea');
+  const badges=[];
+  if(e.didHearing)badges.push('<span class="he-badge g">聽聞前行</span>');
+  if(e.didFaith)badges.push('<span class="he-badge g">修信念恩</span>');
+  if(e.didJournal)badges.push('<span class="he-badge g">寫日記</span>');
+  const pInfo=[];
+  if(e.hearingQuote||e.hearingId)pInfo.push('<strong>聽聞：</strong>'+esc(e.hearingQuote||e.hearingId));
+  if(e.faithQuote||e.faithId)pInfo.push('<strong>念恩：</strong>'+esc(e.faithQuote||e.faithId));
+
+  area.innerHTML=`<div class="det-card">
+    <div class="det-hd">
+      <span class="det-date">${esc(e.date)}</span>
+      <span class="det-time">${esc(e.time||'')}</span>
+    </div>
+    <div class="det-badges">${badges.join('')}</div>
+    ${pInfo.length?'<div class="det-passage">'+pInfo.join('<br>')+'</div>':''}
+    ${e.text?'<div class="det-text">'+esc(e.text)+'</div>':'<div style="color:var(--muted);font-size:.9rem;">（無日記內容）</div>'}
+    <button class="det-close" id="detClose">收合</button>
+  </div>`;
+  document.getElementById('detClose').onclick=()=>{area.innerHTML='';document.querySelectorAll('.cal-day.selected').forEach(s=>s.classList.remove('selected'));};
+}
+
+function switchTab(tab){
+  currentTab=tab;
+  document.getElementById('tabHome').classList.toggle('active',tab==='home');
+  document.getElementById('tabRec').classList.toggle('active',tab==='records');
+  if(tab==='home')buildPage();
+  else buildRecords();
+}
+
+function bindTabs(){
+  document.getElementById('tabHome').onclick=()=>switchTab('home');
+  document.getElementById('tabRec').onclick=()=>switchTab('records');
+}
+
+function showSt(msg,type){
+  const el=document.getElementById('stA');
+  if(el){el.innerHTML='<div class="sm '+type+'">'+esc(msg)+'</div>';setTimeout(()=>{el.innerHTML='';},4000);}
+}
+
+/* ── Local fallback storage ── */
+function saveLocal(text){
+  try{
+    const r=localStorage.getItem('dn_h');const h=r?JSON.parse(r):[];
+    const now=new Date();
+    h.unshift({
+      date:todayISO(), time:String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0'),
+      didHearing:didOpenHearing, didFaith:didOpenFaith, didJournal:text.length>0,
+      charCount:text.length, text,
+      hearingId:hP?pid(hP):'', faithId:fP?pid(fP):'',
+      hearingQuote:hP?hP.quoteText.substring(0,100):'',
+      faithQuote:fP?fP.quoteText.substring(0,100):''
+    });
+    if(h.length>90)h.length=90;
+    localStorage.setItem('dn_h',JSON.stringify(h));
+  }catch(e){}
+}
+
+function loadLocalData(){
+  try{
+    const r=localStorage.getItem('dn_h');entries=r?JSON.parse(r):[];
+    // Compute local stats
+    const dateSet={},now=new Date(),todStr=todayISO();
+    let tc=0,hc=0,fc=0,jc=0;
+    const wStart=new Date(now);wStart.setDate(wStart.getDate()-(now.getDay()||7)+1);
+    const wStr=wStart.getFullYear()+'-'+String(wStart.getMonth()+1).padStart(2,'0')+'-'+String(wStart.getDate()).padStart(2,'0');
+    const mStr=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01';
+    let wd=0,md=0;
+    entries.forEach(e=>{
+      dateSet[e.date]=true; tc+=e.charCount||0;
+      if(e.didHearing)hc++;if(e.didFaith)fc++;if(e.didJournal)jc++;
+    });
+    const ud=Object.keys(dateSet).length;
+    Object.keys(dateSet).forEach(d=>{if(d>=wStr)wd++;if(d>=mStr)md++;});
+    let streak=0,cd=new Date(now);if(!dateSet[todStr])cd=new Date(now.getTime()-864e5);
+    for(let i=0;i<365;i++){
+      const ds=cd.getFullYear()+'-'+String(cd.getMonth()+1).padStart(2,'0')+'-'+String(cd.getDate()).padStart(2,'0');
+      if(dateSet[ds]){streak++;cd=new Date(cd.getTime()-864e5);}else break;
+    }
+    stats={streak,weekDays:wd,monthDays:md,avgChars:ud?Math.round(tc/ud):0,totalEntries:entries.length,hearingCount:hc,faithCount:fc,journalCount:jc};
+  }catch(e){entries=[];stats=null;}
+}
+
+/* ── Remote data loading ── */
+async function loadRemoteData(){
+  if(!apiOk()||!userName)return;
+  try{
+    const [sRes,eRes,tRes]=await Promise.all([
+      api({action:'getStats',userName}),
+      api({action:'getEntries',userName,limit:180}),
+      api({action:'getTodayEntry',userName})
+    ]);
+    if(sRes.ok)stats=sRes.data;
+    if(eRes.ok)entries=eRes.data.entries||[];
+    if(tRes.ok&&tRes.data.found){
+      todayEntry=tRes.data;
+      // Restore open states
+      if(todayEntry.didHearing)didOpenHearing=true;
+      if(todayEntry.didFaith)didOpenFaith=true;
+    }else{todayEntry=null;}
+  }catch(e){console.warn('remote load failed',e);}
+}
+
+/* ── Init ── */
+async function init(){
+  try{
+    const res=await fetch('passages.json');
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    passData=await res.json();
+    hP=pickH(passData); fP=pickF(passData);
+    hIdx=passData.hearingBenefits.indexOf(hP);
+    fIdx=passData.faithGratitude.indexOf(fP);
+
+    userName=loadUser();
+
+    if(apiOk()&&userName){
+      await api({action:'ensureUser',userName});
+      await loadRemoteData();
+    } else {
+      loadLocalData();
+    }
+
+    bindTabs();
+    buildPage();
+  }catch(err){
+    app.innerHTML='<div class="loading" style="color:#8b3a3a;">載入失敗：'+esc(String(err))+'</div>';
+  }
+}
+init();
+</script>
+</body>
+</html>

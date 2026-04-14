@@ -1,0 +1,10 @@
+{
+  "name": "修信念恩日記",
+  "short_name": "念恩日記",
+  "description": "每日修信念恩聞思日記",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#5b4a3f",
+  "background_color": "#f5f0eb",
+  "icons": []
+}
