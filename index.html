@@ -120,7 +120,23 @@
     }
 
     /* Audio */
-    .ac { display:flex; align-items:center; gap:10px; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); }
+    .ac {
+      display:flex; flex-direction:column; gap:8px; margin-top:12px; padding-top:12px;
+      border-top:1px solid var(--border);
+    }
+    .ac-top { display:flex; align-items:flex-start; gap:10px; }
+    .ac-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:6px; }
+    .ap-row { display:flex; align-items:center; gap:8px; min-width:0; }
+    .ap-seek {
+      flex:1; min-width:0; height:6px; accent-color:var(--accent); cursor:pointer;
+    }
+    .ap-seek:disabled { opacity:.45; cursor:not-allowed; }
+    .ap-time {
+      font-size:.72rem; color:var(--muted); white-space:nowrap; flex-shrink:0;
+      font-variant-numeric:tabular-nums; min-width:7.2em; text-align:right;
+    }
+    .ap-vol-lbl { font-size:.68rem; color:var(--muted); flex-shrink:0; width:2em; }
+    .ap-vol { flex:1; max-width:160px; height:6px; accent-color:var(--accent-lt); cursor:pointer; }
     .ab {
       display:flex; align-items:center; justify-content:center;
       width:40px; height:40px; border-radius:50%;
@@ -129,7 +145,7 @@
     }
     .ab:hover { background:var(--accent-bg); }
     .ab svg { width:17px; height:17px; fill:currentColor; }
-    .ai { font-size:.78rem; color:var(--muted); }
+    .ai { font-size:.78rem; color:var(--muted); line-height:1.35; }
     .ai .tid { font-weight:600; color:var(--accent); }
 
     /* Journal Card */
@@ -273,6 +289,123 @@
     .det-close:hover { text-decoration:underline; }
     .rec-empty { text-align:center; color:var(--muted); padding:40px 20px; font-size:.9rem; }
 
+    /* ══ Farm System ══ */
+    .farm-status {
+      background:var(--card); border-radius:var(--r); padding:14px 16px;
+      box-shadow:0 2px 8px var(--shadow); margin-bottom:14px;
+    }
+    .farm-level {
+      display:flex; align-items:center; gap:10px; margin-bottom:8px;
+    }
+    .farm-lv {
+      font-size:1.1rem; font-weight:700; color:var(--accent);
+      background:var(--accent-bg); padding:2px 10px; border-radius:10px;
+      font-family:"Noto Serif TC",serif;
+    }
+    .farm-xp-bar {
+      flex:1; height:14px; background:var(--border); border-radius:7px; overflow:hidden;
+      position:relative;
+    }
+    .farm-xp-fill {
+      height:100%; background:linear-gradient(90deg,var(--accent-lt),var(--accent));
+      border-radius:7px; transition:width .5s ease;
+    }
+    .farm-xp-text {
+      position:absolute; top:0; left:0; right:0; bottom:0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:.6rem; font-weight:600; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.3);
+    }
+    .farm-coins {
+      display:flex; align-items:center; gap:6px; font-size:.9rem; color:var(--text);
+    }
+    .farm-coins .coin-icon { font-size:1.1rem; }
+    .farm-coins .coin-val { font-weight:700; color:#bf8c00; }
+
+    /* Plots Grid */
+    .plots-card {
+      background:var(--card); border-radius:var(--r); padding:14px;
+      box-shadow:0 2px 8px var(--shadow); margin-bottom:14px;
+    }
+    .plots-title {
+      font-family:"Noto Serif TC",serif; font-size:.95rem; font-weight:600;
+      color:var(--accent); margin-bottom:10px;
+    }
+    .plots-grid {
+      display:grid; grid-template-columns:repeat(3,1fr); gap:8px;
+    }
+    .plot {
+      aspect-ratio:1; border-radius:12px; border:2px dashed var(--border);
+      background:#f7f2eb; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; gap:2px;
+      cursor:pointer; transition:all .2s; position:relative; overflow:hidden;
+    }
+    .plot:hover { border-color:var(--accent-lt); background:#f0e9de; }
+    .plot.planted { border-style:solid; border-color:var(--green); background:var(--green-bg); }
+    .plot.ready { border-color:#bf8c00; background:#fff8e1; animation:pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(191,140,0,.2)} 50%{box-shadow:0 0 0 6px rgba(191,140,0,0)} }
+    .plot-emoji { font-size:1.8rem; line-height:1; }
+    .plot-name { font-size:.65rem; color:var(--muted); }
+    .plot-prog { font-size:.6rem; color:var(--green); font-weight:600; }
+    .plot-empty { font-size:.7rem; color:var(--border); }
+    .plot-water { font-size:.55rem; color:#4a90d9; margin-top:1px; }
+    .plot-action {
+      font-size:.65rem; font-weight:600; padding:2px 8px; border-radius:8px;
+      border:none; cursor:pointer; margin-top:2px; font-family:inherit;
+    }
+    .plot-action.harvest { background:#fff3e0; color:#bf8c00; }
+    .plot-action.water { background:#e3f2fd; color:#4a90d9; }
+    .plot-action.plant { background:var(--accent-bg); color:var(--accent); }
+
+    /* Shop */
+    .shop-card {
+      background:var(--card); border-radius:var(--r); padding:14px;
+      box-shadow:0 2px 8px var(--shadow); margin-bottom:14px;
+    }
+    .shop-title {
+      font-family:"Noto Serif TC",serif; font-size:.95rem; font-weight:600;
+      color:var(--accent); margin-bottom:10px;
+    }
+    .seed-list { display:flex; flex-direction:column; gap:6px; }
+    .seed-item {
+      display:flex; align-items:center; gap:10px; padding:10px;
+      border-radius:10px; background:var(--bg); transition:all .15s;
+    }
+    .seed-item.locked { opacity:.45; }
+    .seed-emoji { font-size:1.4rem; flex-shrink:0; }
+    .seed-info { flex:1; min-width:0; }
+    .seed-name { font-size:.88rem; font-weight:600; color:var(--text); }
+    .seed-desc { font-size:.7rem; color:var(--muted); }
+    .seed-buy {
+      padding:5px 12px; border:none; border-radius:8px;
+      font-size:.75rem; font-weight:600; cursor:pointer;
+      background:var(--accent); color:#fff; font-family:inherit;
+      transition:all .2s; white-space:nowrap;
+    }
+    .seed-buy:hover { background:#7a5e38; }
+    .seed-buy:disabled { opacity:.4; cursor:not-allowed; }
+    .seed-lock { font-size:.7rem; color:var(--muted); white-space:nowrap; }
+
+    /* Inventory */
+    .inv-row {
+      display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; padding:8px;
+      background:var(--bg); border-radius:8px;
+    }
+    .inv-item {
+      display:flex; align-items:center; gap:3px; font-size:.8rem;
+      padding:3px 8px; background:var(--card); border-radius:6px;
+      border:1px solid var(--border); cursor:pointer; transition:all .15s;
+    }
+    .inv-item:hover { border-color:var(--accent); }
+    .inv-item.selected { border-color:var(--accent); background:var(--accent-bg); }
+
+    /* Farm toast */
+    .farm-toast {
+      position:fixed; top:20px; left:50%; transform:translateX(-50%);
+      background:#333; color:#fff; padding:10px 20px; border-radius:12px;
+      font-size:.88rem; font-weight:600; z-index:200; animation:fi .3s ease;
+      box-shadow:0 4px 16px rgba(0,0,0,.2);
+    }
+
     @media(max-width:400px) {
       #app { padding:12px; padding-bottom:70px; }
       .stats-grid { grid-template-columns:repeat(2,1fr); }
@@ -292,6 +425,10 @@
     <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
     紀錄
   </button>
+  <button id="tabFarm" title="農場">
+    <svg viewBox="0 0 24 24"><path d="M12 22c4.97 0 9-4.03 9-9-4.97 0-9 4.03-9 9zM5.6 10.25c0 1.38 1.12 2.5 2.5 2.5.53 0 1.01-.16 1.42-.44l-.02.19c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5l-.02-.19c.4.28.89.44 1.42.44 1.38 0 2.5-1.12 2.5-2.5 0-1-.59-1.85-1.43-2.25.84-.4 1.43-1.25 1.43-2.25 0-1.38-1.12-2.5-2.5-2.5-.53 0-1.01.16-1.42.44l.02-.19C14.5 2.12 13.38 1 12 1S9.5 2.12 9.5 3.5l.02.19c-.4-.28-.89-.44-1.42-.44-1.38 0-2.5 1.12-2.5 2.5 0 1 .59 1.85 1.43 2.25-.84.4-1.43 1.25-1.43 2.25zM12 5.5c1.38 0 2.5 1.12 2.5 2.5s-1.12 2.5-2.5 2.5S9.5 9.38 9.5 8s1.12-2.5 2.5-2.5zM3 13c0 4.97 4.03 9 9 9 0-4.97-4.03-9-9-9z"/></svg>
+    農場
+  </button>
 </div>
 
 <script>
@@ -305,7 +442,43 @@ const API_KEY = 'bmbill';   // 與 Apps Script 指令碼屬性裡的 API_KEY 一
 const PLAY='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
 const STOP='<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>';
 const ARR='&#9662;';
-const CDN='https://cdn.amec.amrtf.org/volume/B000027';
+
+/** 與 lamrim_book 相同：南普陀手抄稿 AMEC 課程代碼；音檔完整 URL 經 volume JSON API 取得，避免硬拼路徑。 */
+const AMRTF_NANPUTUO_COURSE='B000027';
+const AMRTF_MP3_SUFFIX='-48kHz-64kbs';
+function volumeApiBase(){return 'https://cdn.amec.amrtf.org/volume/'+AMRTF_NANPUTUO_COURSE;}
+const amrtfUrlCache=new Map();
+const amrtfInflight=new Map();
+async function fetchAmrtfMp3UrlForPage(pageSlug){
+  const n=parseInt(pageSlug,10);
+  if(!Number.isFinite(n)||n<1)return null;
+  const url=volumeApiBase()+'/'+n;
+  try{
+    const res=await fetch(url,{headers:{Accept:'application/json'}});
+    if(!res.ok)return null;
+    const data=await res.json();
+    const list=data.media;
+    if(!Array.isArray(list))return null;
+    for(let i=0;i<list.length;i++){
+      const m=list[i];
+      if(m.mediaType==='audio/mpeg'&&typeof m.src==='string'&&m.src.length>0)return m.src+AMRTF_MP3_SUFFIX;
+    }
+  }catch(e){}
+  return null;
+}
+function getAmrtfMp3Url(pageSlug){
+  if(amrtfUrlCache.has(pageSlug))return Promise.resolve(amrtfUrlCache.get(pageSlug));
+  let p=amrtfInflight.get(pageSlug);
+  if(!p){
+    p=fetchAmrtfMp3UrlForPage(pageSlug).then(function(url){
+      amrtfUrlCache.set(pageSlug,url);
+      amrtfInflight.delete(pageSlug);
+      return url;
+    });
+    amrtfInflight.set(pageSlug,p);
+  }
+  return p;
+}
 
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function todayISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -314,18 +487,102 @@ function hash(s){let h=0;for(let i=0;i<s.length;i++)h=(Math.imul(31,h)+s.charCod
 function pid(p){return p.pageSlug+'-'+p.entryIndex;}
 function apiOk(){return !!GAS_URL&&!!API_KEY;}
 
-/* ── Audio ── */
-let cAud=null,cPlan=[],cIdx=0,aCb=null;
+/* ── Audio（解析方式對齊 lamrim_book/src/transcripts/lamrim.ts） ── */
+let cAud=null,cPlan=[],cIdx=0,aCb=null,aGen=0,aPlayUiId=null;
+let aStepStartSec=0,aStepEndSec=null,aSeekDrag=false;
 function aPlay(){return cAud&&!cAud.paused;}
-function aStop(){if(cAud){cAud.pause();cAud.src='';cAud=null;}cPlan=[];cIdx=0;}
-function aPlan(plan,cb){aStop();if(!plan||!plan.length)return;cPlan=plan;cIdx=0;aCb=cb||null;aStep();}
-function aStep(){
+function fmtAudioT(sec){
+  const s=Math.max(0,Math.floor(sec));
+  const m=Math.floor(s/60),r=s%60;
+  return m+':'+String(r).padStart(2,'0');
+}
+function aResetPlayerUi(uid){
+  const seek=document.getElementById('aseek-'+uid);
+  const time=document.getElementById('atime-'+uid);
+  if(seek){seek.disabled=true;seek.value='0';seek.removeAttribute('max');}
+  if(time){time.textContent='--:-- / --:--';}
+}
+function aSyncPlayBtns(){
+  ['h','f'].forEach(function(id){
+    const el=document.getElementById('ab-'+id);
+    if(!el)return;
+    el.innerHTML=aPlay()&&aPlayUiId===id?STOP:PLAY;
+  });
+}
+function aUpdateUi(){
+  if(!aPlayUiId||!cAud)return;
+  const seek=document.getElementById('aseek-'+aPlayUiId);
+  const time=document.getElementById('atime-'+aPlayUiId);
+  if(!seek||!time)return;
+  const end=aStepEndSec!=null&&Number.isFinite(aStepEndSec)
+    ?aStepEndSec
+    :(Number.isFinite(cAud.duration)?cAud.duration:aStepStartSec);
+  const dur=Math.max(0.001,end-aStepStartSec);
+  const cur=Math.max(0,Math.min(dur,cAud.currentTime-aStepStartSec));
+  seek.disabled=false;
+  seek.max=String(dur);
+  if(!aSeekDrag)seek.value=String(cur);
+  time.textContent=fmtAudioT(cur)+' / '+fmtAudioT(dur);
+}
+function loadAudioVol(){
+  try{const v=parseFloat(localStorage.getItem('dn_avol'));return Number.isFinite(v)&&v>=0&&v<=1?v:1;}catch(e){return 1;}
+}
+function saveAudioVol(v){
+  try{localStorage.setItem('dn_avol',String(v));}catch(e){}
+}
+function aStop(){
+  aGen++;
+  const prevUi=aPlayUiId;
+  if(cAud){
+    try{cAud.pause();cAud.removeAttribute('src');cAud.load();}catch(e){}
+    cAud=null;
+  }
+  if(prevUi)aResetPlayerUi(prevUi);
+  aPlayUiId=null;
+  aStepStartSec=0;aStepEndSec=null;aSeekDrag=false;
+  cPlan=[];cIdx=0;
+  aSyncPlayBtns();
+}
+function aPlan(plan,cb,uiId){
+  aStop();
+  if(!plan||!plan.length)return;
+  cPlan=plan;cIdx=0;aCb=cb||null;aPlayUiId=uiId;
+  void aStep();
+}
+async function aStep(){
+  const myGen=aGen;
   const s=cPlan[cIdx];if(!s){aCb&&aCb();return;}
-  const a=new Audio(CDN+'/'+s.pageSlug+'-48kHz-64kbs.mp3');cAud=a;
-  a.addEventListener('loadedmetadata',()=>{a.currentTime=s.startSec;a.play().catch(()=>{});});
-  a.addEventListener('timeupdate',()=>{if(s.endSec!==null&&a.currentTime>=s.endSec){a.pause();nx();}});
-  a.addEventListener('ended',nx);a.addEventListener('error',nx);
-  function nx(){cIdx++;cIdx<cPlan.length?aStep():(aCb&&aCb());}
+  const url=await getAmrtfMp3Url(s.pageSlug);
+  if(myGen!==aGen)return;
+  if(!url){
+    try{showSt('無法取得音檔位址，請稍後再試或至官網該講次頁面收聽。','err');}catch(e){}
+    const done=aCb;aCb=null;aStop();done&&done();
+    return;
+  }
+  if(cAud){
+    try{cAud.pause();cAud.removeAttribute('src');cAud.load();}catch(e){}
+    cAud=null;
+  }
+  aStepStartSec=s.startSec;
+  aStepEndSec=s.endSec;
+  const a=new Audio(url);
+  a.volume=loadAudioVol();
+  cAud=a;
+  function nx(){cIdx++;cIdx<cPlan.length?void aStep():(aCb&&aCb());}
+  a.addEventListener('loadedmetadata',function(){
+    if(myGen!==aGen)return;
+    if(s.endSec==null&&Number.isFinite(a.duration))aStepEndSec=a.duration;
+    a.currentTime=s.startSec;
+    aUpdateUi();
+    a.play().catch(function(){});
+  });
+  a.addEventListener('timeupdate',function(){
+    if(myGen!==aGen)return;
+    if(!aSeekDrag)aUpdateUi();
+    if(s.endSec!==null&&a.currentTime>=s.endSec){a.pause();nx();}
+  });
+  a.addEventListener('ended',function(){if(myGen!==aGen)return;nx();});
+  a.addEventListener('error',function(){if(myGen!==aGen)return;nx();});
 }
 
 /* ── Passage selection ── */
@@ -463,8 +720,20 @@ function passHTML(p,id){
     <div class="pe" id="pe-${id}">${p.explanationHtml}</div>
     ${long?'<button class="te" id="te-'+id+'">展開全文</button>':''}
     <div class="ac">
-      <button class="ab" id="ab-${id}" title="播放師父開示音檔">${PLAY}</button>
-      <div class="ai" id="ai-${id}">${tape?'<span class="tid">'+tape+'</span> · ':''}師父開示音檔</div>
+      <div class="ac-top">
+        <button type="button" class="ab" id="ab-${id}" title="播放／暫停師父開示音檔">${PLAY}</button>
+        <div class="ac-body">
+          <div class="ap-row">
+            <input type="range" class="ap-seek" id="aseek-${id}" min="0" max="1" step="0.1" value="0" disabled aria-label="播放進度" />
+            <span class="ap-time" id="atime-${id}">--:-- / --:--</span>
+          </div>
+          <div class="ap-row">
+            <span class="ap-vol-lbl">音量</span>
+            <input type="range" class="ap-vol" id="avol-${id}" min="0" max="100" value="100" aria-label="音量" />
+          </div>
+          <div class="ai" id="ai-${id}">${tape?'<span class="tid">'+tape+'</span> · ':''}師父開示音檔</div>
+        </div>
+      </div>
     </div>`;
 }
 
@@ -516,22 +785,35 @@ function bind(){
         faithQuote:fP?fP.quoteText.substring(0,100):''
       });
       if(r.ok){
-        clearDraft(); showSt('已儲存到 Google 試算表！','ok');
+        clearDraft();
         ta.value=''; cc.textContent='0 字';
         await loadRemoteData();
         document.getElementById('statsGrid').innerHTML=statsHTML();
+        const rw=awardJournal(text.length,didOpenHearing,didOpenFaith);
+        if(rw){
+          let msg='已儲存！ +'+rw.xpGain+' XP · +🪙'+rw.coinGain;
+          if(rw.lvUp)msg+=' · 🎉 升到 Lv.'+rw.level+'！';
+          showSt(msg,'ok');
+        }else{showSt('已更新日記！','ok');}
       } else {
         showSt('儲存失敗：'+r.error,'err');
       }
     } else {
       // Local save
       saveLocal(text);
-      clearDraft(); showSt('已儲存到本機！','ok');
+      clearDraft();
       ta.value=''; cc.textContent='0 字';
       loadLocalData();
       document.getElementById('statsGrid').innerHTML=statsHTML();
+      const rw=awardJournal(text.length,didOpenHearing,didOpenFaith);
+      if(rw){
+        let msg='已儲存！ +'+rw.xpGain+' XP · +🪙'+rw.coinGain;
+        if(rw.lvUp)msg+=' · 🎉 升到 Lv.'+rw.level+'！';
+        showSt(msg,'ok');
+      }else{showSt('已更新日記！','ok');}
     }
-    btn.disabled=false; btn.textContent='儲存日記';
+    btn.disabled=false; btn.textContent=todayEntry?'更新日記':'儲存日記';
+    todayEntry={text}; // mark as saved today
   };
 }
 
@@ -547,8 +829,7 @@ function bindTog(id,which){
       if(which==='faith'&&!didOpenFaith){didOpenFaith=true;updateTag('tagF','已聽聞');}
     }
     if(!opening){
-      const b=document.getElementById('ab-'+(id==='H'?'h':'f'));
-      if(aPlay()){aStop();if(b)b.innerHTML=PLAY;}
+      if(aPlay())aStop();
     }
   };
 }
@@ -560,13 +841,45 @@ function updateTag(elId,text){
 
 function bindPass(id,p,which){
   const btn=document.getElementById('ab-'+id);
+  const seek=document.getElementById('aseek-'+id);
+  const vol=document.getElementById('avol-'+id);
   const te=document.getElementById('te-'+id);
   const pe=document.getElementById('pe-'+id);
+  if(vol){
+    vol.value=String(Math.round(loadAudioVol()*100));
+    vol.oninput=function(){
+      const v=Math.max(0,Math.min(1,parseInt(vol.value,10)/100));
+      saveAudioVol(v);
+      const other=document.getElementById('avol-'+(id==='h'?'f':'h'));
+      if(other)other.value=String(Math.round(v*100));
+      if(cAud)cAud.volume=v;
+    };
+  }
+  if(seek){
+    seek.onpointerdown=function(e){
+      if(aPlayUiId!==id)return;
+      aSeekDrag=true;
+      try{seek.setPointerCapture(e.pointerId);}catch(_){}
+    };
+    seek.onpointerup=function(){aSeekDrag=false;if(aPlayUiId===id)aUpdateUi();};
+    seek.onpointercancel=function(){aSeekDrag=false;};
+    seek.onlostpointercapture=function(){aSeekDrag=false;if(aPlayUiId===id)aUpdateUi();};
+    seek.oninput=function(){
+      if(!cAud||aPlayUiId!==id)return;
+      const mx=aStepEndSec!=null&&Number.isFinite(aStepEndSec)
+        ?aStepEndSec
+        :(Number.isFinite(cAud.duration)?cAud.duration:aStepStartSec);
+      const dur=Math.max(0.001,mx-aStepStartSec);
+      const t=aStepStartSec+Math.max(0,Math.min(dur,parseFloat(seek.value)||0));
+      cAud.currentTime=t;
+    };
+  }
   if(btn&&p)btn.onclick=(e)=>{
     e.stopPropagation();
-    if(aPlay()){aStop();btn.innerHTML=PLAY;}
+    if(aPlay()&&aPlayUiId===id){aStop();}
     else{
-      aPlan(p.audioPlan,()=>{btn.innerHTML=PLAY;});btn.innerHTML=STOP;
+      aPlan(p.audioPlan,function(){aSyncPlayBtns();},id);
+      btn.innerHTML=STOP;
       if(which==='hearing')didPlayHearing=true;
       if(which==='faith')didPlayFaith=true;
     }
@@ -700,13 +1013,311 @@ function switchTab(tab){
   currentTab=tab;
   document.getElementById('tabHome').classList.toggle('active',tab==='home');
   document.getElementById('tabRec').classList.toggle('active',tab==='records');
+  document.getElementById('tabFarm').classList.toggle('active',tab==='farm');
   if(tab==='home')buildPage();
-  else buildRecords();
+  else if(tab==='records')buildRecords();
+  else buildFarm();
 }
 
 function bindTabs(){
   document.getElementById('tabHome').onclick=()=>switchTab('home');
   document.getElementById('tabRec').onclick=()=>switchTab('records');
+  document.getElementById('tabFarm').onclick=()=>switchTab('farm');
+}
+
+/* ══════════════════════════════════════════════
+   農場系統
+   ══════════════════════════════════════════════ */
+const SEEDS=[
+  {id:'grass',name:'小草',emoji:'🌱',stages:['🌱','🌿','🍀'],cost:2,growDays:1,sell:5,minLv:1},
+  {id:'daisy',name:'雛菊',emoji:'🌼',stages:['🌱','🌿','🌼'],cost:5,growDays:2,sell:12,minLv:3},
+  {id:'tulip',name:'鬱金香',emoji:'🌷',stages:['🌱','🌿','🌸','🌷'],cost:10,growDays:3,sell:25,minLv:5},
+  {id:'sunflower',name:'向日葵',emoji:'🌻',stages:['🌱','🌿','🌾','🌻'],cost:20,growDays:4,sell:50,minLv:8},
+  {id:'rose',name:'玫瑰',emoji:'🌹',stages:['🌱','🌿','🥀','🌹'],cost:35,growDays:5,sell:85,minLv:12},
+  {id:'lotus',name:'蓮花',emoji:'🪷',stages:['🌱','🌿','🌸','🪻','🪷'],cost:60,growDays:6,sell:150,minLv:16},
+  {id:'bodhi',name:'菩提樹',emoji:'🌳',stages:['🌱','🌿','🌲','🎄','🎋','🌳'],cost:100,growDays:7,sell:260,minLv:20},
+];
+const START_PLOTS=6;
+const MAX_PLOTS=15;
+const PLOT_PRICES=[0,0,0,0,0,0,15,25,40,60,85,120,160,210,270]; // cost for each slot
+
+function defaultFarm(){
+  return {xp:0,level:1,coins:10,totalCoins:10,numPlots:START_PLOTS,
+    plots:Array.from({length:START_PLOTS},()=>({seedId:null,wateredDays:0,lastWatered:null})),
+    inventory:{},todayRewarded:null};
+}
+
+function buyPlot(){
+  const f=loadFarm();
+  if(f.numPlots>=MAX_PLOTS)return false;
+  const cost=PLOT_PRICES[f.numPlots]||999;
+  if(f.coins<cost)return false;
+  f.coins-=cost;
+  f.numPlots++;
+  f.plots.push({seedId:null,wateredDays:0,lastWatered:null});
+  saveFarm(f);
+  return true;
+}
+function loadFarm(){try{const s=localStorage.getItem('dn_farm');return s?{...defaultFarm(),...JSON.parse(s)}:defaultFarm();}catch(e){return defaultFarm();}}
+function saveFarm(f){try{localStorage.setItem('dn_farm',JSON.stringify(f));}catch(e){}}
+
+function xpForLevel(lv){return lv*30;}
+function seedById(id){return SEEDS.find(s=>s.id===id);}
+
+function awardJournal(charCount,didH,didF){
+  const f=loadFarm();
+  const today=todayISO();
+  if(f.todayRewarded===today)return null; // already rewarded today
+  let xpGain=10+Math.min(30,Math.floor(charCount/20));
+  if(didH)xpGain+=5;
+  if(didF)xpGain+=5;
+  let coinGain=3;
+  if(charCount>=100)coinGain+=2;
+
+  f.xp+=xpGain;
+  let lvUp=0;
+  while(f.xp>=xpForLevel(f.level)){
+    f.xp-=xpForLevel(f.level);
+    f.level++;
+    lvUp++;
+    coinGain+=10;
+  }
+  f.coins+=coinGain;
+  f.totalCoins+=coinGain;
+  f.todayRewarded=today;
+  saveFarm(f);
+  return {xpGain,coinGain,lvUp,level:f.level};
+}
+
+function canWaterToday(){
+  // Check if user saved a journal entry today
+  const f=loadFarm();
+  return f.todayRewarded===todayISO();
+}
+
+function waterPlot(idx){
+  const f=loadFarm();
+  const p=f.plots[idx];
+  if(!p||!p.seedId)return false;
+  const today=todayISO();
+  if(p.lastWatered===today)return false; // already watered today
+  if(!canWaterToday())return false;
+  p.wateredDays++;
+  p.lastWatered=today;
+  saveFarm(f);
+  return true;
+}
+
+function harvestPlot(idx){
+  const f=loadFarm();
+  const p=f.plots[idx];
+  if(!p||!p.seedId)return null;
+  const seed=seedById(p.seedId);
+  if(!seed||p.wateredDays<seed.growDays)return null;
+  const coins=seed.sell;
+  f.coins+=coins;
+  f.totalCoins+=coins;
+  f.plots[idx]={seedId:null,wateredDays:0,lastWatered:null};
+  saveFarm(f);
+  return {coins,name:seed.name,emoji:seed.emoji};
+}
+
+function buySeed(seedId){
+  const f=loadFarm();
+  const seed=seedById(seedId);
+  if(!seed||f.coins<seed.cost||f.level<seed.minLv)return false;
+  f.coins-=seed.cost;
+  f.inventory[seedId]=(f.inventory[seedId]||0)+1;
+  saveFarm(f);
+  return true;
+}
+
+function plantSeed(seedId,plotIdx){
+  const f=loadFarm();
+  if(!f.inventory[seedId]||f.inventory[seedId]<=0)return false;
+  if(f.plots[plotIdx].seedId)return false;
+  f.inventory[seedId]--;
+  if(f.inventory[seedId]<=0)delete f.inventory[seedId];
+  f.plots[plotIdx]={seedId,wateredDays:0,lastWatered:null};
+  saveFarm(f);
+  return true;
+}
+
+let selectedSeed=null; // for planting mode
+
+function farmToast(msg){
+  const t=document.createElement('div');
+  t.className='farm-toast';t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2000);
+}
+
+function buildFarm(){
+  aStop();
+  const f=loadFarm();
+  const xpNeeded=xpForLevel(f.level);
+  const xpPct=Math.min(100,Math.round(f.xp/xpNeeded*100));
+  const wt=canWaterToday();
+  const invKeys=Object.keys(f.inventory).filter(k=>f.inventory[k]>0);
+
+  app.innerHTML=`
+    <header class="hd"><h1>修信念恩農場</h1><div class="date">${todayFmt()}</div></header>
+
+    <!-- Status -->
+    <div class="farm-status">
+      <div class="farm-level">
+        <span class="farm-lv">Lv.${f.level}</span>
+        <div class="farm-xp-bar">
+          <div class="farm-xp-fill" style="width:${xpPct}%"></div>
+          <div class="farm-xp-text">${f.xp} / ${xpNeeded} XP</div>
+        </div>
+      </div>
+      <div class="farm-coins">
+        <span class="coin-icon">🪙</span>
+        <span class="coin-val">${f.coins}</span> 金幣
+        ${!wt?'<span style="margin-left:auto;font-size:.75rem;color:var(--muted);">📝 寫日記才能澆水</span>':'<span style="margin-left:auto;font-size:.75rem;color:var(--green);">✅ 今天已寫日記</span>'}
+      </div>
+    </div>
+
+    <!-- Inventory -->
+    ${invKeys.length?`
+    <div class="plots-card">
+      <div class="plots-title">🎒 背包 <span style="font-size:.75rem;color:var(--muted);font-weight:400;">（點選種子再點空地種植）</span></div>
+      <div class="inv-row" id="invRow">
+        ${invKeys.map(k=>{
+          const s=seedById(k);
+          return `<div class="inv-item" data-seed="${k}">${s.emoji} ${s.name} ×${f.inventory[k]}</div>`;
+        }).join('')}
+      </div>
+    </div>`:''}
+
+    <!-- Farm Plots -->
+    <div class="plots-card">
+      <div class="plots-title">🌾 我的農場</div>
+      <div class="plots-grid" id="plotsGrid">
+        ${f.plots.map((p,i)=>{
+          if(!p.seedId){
+            return `<div class="plot" data-idx="${i}">
+              <div class="plot-empty">＋</div>
+              <div class="plot-name">空地</div>
+            </div>`;
+          }
+          const seed=seedById(p.seedId);
+          const done=p.wateredDays>=seed.growDays;
+          const stageIdx=done?seed.stages.length-1:Math.min(Math.floor(p.wateredDays/seed.growDays*(seed.stages.length-1)),seed.stages.length-2);
+          const emoji=seed.stages[stageIdx];
+          const wateredToday=p.lastWatered===todayISO();
+          return `<div class="plot ${done?'ready':'planted'}" data-idx="${i}">
+            <div class="plot-emoji">${emoji}</div>
+            <div class="plot-name">${seed.name}</div>
+            <div class="plot-prog">${p.wateredDays}/${seed.growDays} 天</div>
+            ${done?'<button class="plot-action harvest" data-idx="'+i+'">🪙 收成</button>'
+              :wateredToday?'<div class="plot-water">💧 已澆水</div>'
+              :wt?'<button class="plot-action water" data-idx="'+i+'">💧 澆水</button>'
+              :'<div class="plot-water">需寫日記</div>'}
+          </div>`;
+        }).join('')}
+      </div>
+      ${f.numPlots<MAX_PLOTS?`<div style="text-align:center;margin-top:10px;">
+        <button class="seed-buy" id="buyPlotBtn" ${f.coins<PLOT_PRICES[f.numPlots]?'disabled':''} style="padding:8px 16px;font-size:.82rem;">
+          🏗️ 擴建農田 🪙${PLOT_PRICES[f.numPlots]}
+        </button>
+        <div style="font-size:.7rem;color:var(--muted);margin-top:4px;">${f.numPlots}/${MAX_PLOTS} 塊田</div>
+      </div>`:`<div style="text-align:center;margin-top:8px;font-size:.75rem;color:var(--green);">🎉 農場已滿 ${MAX_PLOTS} 塊田！</div>`}
+    </div>
+
+    <!-- Shop -->
+    <div class="shop-card">
+      <div class="shop-title">🛒 種子商店</div>
+      <div class="seed-list">
+        ${SEEDS.map(s=>{
+          const locked=f.level<s.minLv;
+          const afford=f.coins>=s.cost;
+          return `<div class="seed-item${locked?' locked':''}">
+            <span class="seed-emoji">${s.emoji}</span>
+            <div class="seed-info">
+              <div class="seed-name">${s.name}</div>
+              <div class="seed-desc">${s.growDays}天 · 收成 🪙${s.sell}</div>
+            </div>
+            ${locked
+              ?'<span class="seed-lock">🔒 Lv.'+s.minLv+'</span>'
+              :`<button class="seed-buy" data-id="${s.id}" ${!afford?'disabled':''}}>🪙${s.cost}</button>`}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+
+  // Bind events
+  // Buy plot
+  const bpBtn=document.getElementById('buyPlotBtn');
+  if(bpBtn)bpBtn.onclick=()=>{
+    if(buyPlot()){farmToast('農場擴建成功！🏗️');buildFarm();}
+  };
+
+  // Buy seeds
+  document.querySelectorAll('.seed-buy:not(#buyPlotBtn)').forEach(btn=>{
+    btn.onclick=()=>{
+      if(buySeed(btn.dataset.id)){
+        farmToast('購買了 '+seedById(btn.dataset.id).name+'！');
+        buildFarm();
+      }
+    };
+  });
+
+  // Inventory selection
+  document.querySelectorAll('.inv-item').forEach(el=>{
+    el.onclick=()=>{
+      const wasSelected=el.classList.contains('selected');
+      document.querySelectorAll('.inv-item').forEach(e=>e.classList.remove('selected'));
+      if(!wasSelected){el.classList.add('selected');selectedSeed=el.dataset.seed;}
+      else selectedSeed=null;
+    };
+  });
+
+  // Plot clicks
+  document.querySelectorAll('.plot').forEach(el=>{
+    const idx=parseInt(el.dataset.idx);
+    const p=f.plots[idx];
+    el.onclick=(e)=>{
+      if(e.target.classList.contains('plot-action'))return; // let button handle
+      // Plant if empty and seed selected
+      if(!p.seedId&&selectedSeed){
+        if(plantSeed(selectedSeed,idx)){
+          farmToast('種下了 '+seedById(selectedSeed).name+'！');
+          selectedSeed=null;
+          buildFarm();
+        }
+      }
+    };
+  });
+
+  // Water buttons
+  document.querySelectorAll('.plot-action.water').forEach(btn=>{
+    btn.onclick=(e)=>{
+      e.stopPropagation();
+      const idx=parseInt(btn.dataset.idx);
+      if(waterPlot(idx)){
+        farmToast('澆水成功！💧');
+        buildFarm();
+      }
+    };
+  });
+
+  // Harvest buttons
+  document.querySelectorAll('.plot-action.harvest').forEach(btn=>{
+    btn.onclick=(e)=>{
+      e.stopPropagation();
+      const idx=parseInt(btn.dataset.idx);
+      const r=harvestPlot(idx);
+      if(r){
+        farmToast(`收成 ${r.emoji}${r.name}！+🪙${r.coins}`);
+        buildFarm();
+      }
+    };
+  });
+
+  document.getElementById('tabBar').style.display='flex';
 }
 
 function showSt(msg,type){
