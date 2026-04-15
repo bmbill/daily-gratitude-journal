@@ -137,6 +137,16 @@
     }
     .ap-vol-lbl { font-size:.68rem; color:var(--muted); flex-shrink:0; width:2em; }
     .ap-vol { flex:1; max-width:160px; height:6px; accent-color:var(--accent-lt); cursor:pointer; }
+    .ap-loop-row { align-items:center; flex-wrap:wrap; gap:6px 10px; margin-top:2px; }
+    .ap-loop-lbl {
+      font-size:.75rem; color:var(--muted); display:inline-flex; align-items:center; gap:6px;
+      cursor:pointer; user-select:none;
+    }
+    .ap-loop-cb { accent-color:var(--accent); width:1rem; height:1rem; flex-shrink:0; }
+    .ap-loop-wait {
+      font-size:.72rem; color:var(--accent); flex:1; text-align:right; min-height:1.25em;
+      font-variant-numeric:tabular-nums;
+    }
     .ab {
       display:flex; align-items:center; justify-content:center;
       width:40px; height:40px; border-radius:50%;
@@ -440,7 +450,8 @@ const API_KEY = 'bmbill';   // 與 Apps Script 指令碼屬性裡的 API_KEY 一
 
 /* ── helpers ── */
 const PLAY='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
-const STOP='<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>';
+const PAUSE='<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+const LOOP_GAP_MS=10000;
 const ARR='&#9662;';
 
 /** 與 lamrim_book 相同：南普陀手抄稿 AMEC 課程代碼；音檔完整 URL 經 volume JSON API 取得，避免硬拼路徑。 */
@@ -490,6 +501,7 @@ function apiOk(){return !!GAS_URL&&!!API_KEY;}
 /* ── Audio（解析方式對齊 lamrim_book/src/transcripts/lamrim.ts） ── */
 let cAud=null,cPlan=[],cIdx=0,aCb=null,aGen=0,aPlayUiId=null;
 let aStepStartSec=0,aStepEndSec=null,aSeekDrag=false;
+let aLoopTimer=null;
 function aPlay(){return cAud&&!cAud.paused;}
 function fmtAudioT(sec){
   const s=Math.max(0,Math.floor(sec));
@@ -506,7 +518,16 @@ function aSyncPlayBtns(){
   ['h','f'].forEach(function(id){
     const el=document.getElementById('ab-'+id);
     if(!el)return;
-    el.innerHTML=aPlay()&&aPlayUiId===id?STOP:PLAY;
+    el.innerHTML=aPlay()&&aPlayUiId===id?PAUSE:PLAY;
+  });
+}
+function clearLoopTimer(){
+  if(aLoopTimer){clearTimeout(aLoopTimer);aLoopTimer=null;}
+}
+function clearLoopWaitUi(){
+  ['h','f'].forEach(function(id){
+    const w=document.getElementById('aloopwait-'+id);
+    if(w){w.hidden=true;w.textContent='';}
   });
 }
 function aUpdateUi(){
@@ -532,6 +553,8 @@ function saveAudioVol(v){
 }
 function aStop(){
   aGen++;
+  clearLoopTimer();
+  clearLoopWaitUi();
   const prevUi=aPlayUiId;
   if(cAud){
     try{cAud.pause();cAud.removeAttribute('src');cAud.load();}catch(e){}
@@ -549,9 +572,35 @@ function aPlan(plan,cb,uiId){
   cPlan=plan;cIdx=0;aCb=cb||null;aPlayUiId=uiId;
   void aStep();
 }
+function scheduleLoopRestart(uid){
+  const gen=aGen;
+  let left=Math.ceil(LOOP_GAP_MS/1000);
+  const w=document.getElementById('aloopwait-'+uid);
+  function show(){
+    if(w){w.hidden=false;w.textContent=left>0?'將於 '+left+' 秒後再次播放（可點播放略過）':'';}
+  }
+  show();
+  function tick(){
+    if(gen!==aGen)return;
+    left--;
+    if(left<=0){
+      clearLoopTimer();
+      clearLoopWaitUi();
+      cIdx=0;
+      void aStep();
+      return;
+    }
+    show();
+    aLoopTimer=setTimeout(tick,1000);
+  }
+  aLoopTimer=setTimeout(tick,1000);
+}
+
 async function aStep(){
   const myGen=aGen;
-  const s=cPlan[cIdx];if(!s){aCb&&aCb();return;}
+  clearLoopWaitUi();
+  const s=cPlan[cIdx];
+  if(!s){clearLoopWaitUi();aCb&&aCb();return;}
   const url=await getAmrtfMp3Url(s.pageSlug);
   if(myGen!==aGen)return;
   if(!url){
@@ -568,13 +617,26 @@ async function aStep(){
   const a=new Audio(url);
   a.volume=loadAudioVol();
   cAud=a;
-  function nx(){cIdx++;cIdx<cPlan.length?void aStep():(aCb&&aCb());}
+  function nx(){
+    cIdx++;
+    if(cIdx<cPlan.length){void aStep();return;}
+    const uid=aPlayUiId;
+    const box=uid&&document.getElementById('aloop-'+uid);
+    if(box&&box.checked){
+      clearLoopTimer();
+      scheduleLoopRestart(uid);
+      aSyncPlayBtns();
+      return;
+    }
+    clearLoopWaitUi();
+    aCb&&aCb();
+  }
   a.addEventListener('loadedmetadata',function(){
     if(myGen!==aGen)return;
     if(s.endSec==null&&Number.isFinite(a.duration))aStepEndSec=a.duration;
     a.currentTime=s.startSec;
     aUpdateUi();
-    a.play().catch(function(){});
+    void a.play().then(function(){aSyncPlayBtns();}).catch(function(){aSyncPlayBtns();});
   });
   a.addEventListener('timeupdate',function(){
     if(myGen!==aGen)return;
@@ -731,6 +793,10 @@ function passHTML(p,id){
             <span class="ap-vol-lbl">音量</span>
             <input type="range" class="ap-vol" id="avol-${id}" min="0" max="100" value="100" aria-label="音量" />
           </div>
+          <div class="ap-row ap-loop-row">
+            <label class="ap-loop-lbl"><input type="checkbox" class="ap-loop-cb" id="aloop-${id}" /> 循環播放（全段播畢後間隔 10 秒）</label>
+            <span class="ap-loop-wait" id="aloopwait-${id}" hidden></span>
+          </div>
           <div class="ai" id="ai-${id}">${tape?'<span class="tid">'+tape+'</span> · ':''}師父開示音檔</div>
         </div>
       </div>
@@ -829,7 +895,7 @@ function bindTog(id,which){
       if(which==='faith'&&!didOpenFaith){didOpenFaith=true;updateTag('tagF','已聽聞');}
     }
     if(!opening){
-      if(aPlay())aStop();
+      if(cAud||aPlayUiId)aStop();
     }
   };
 }
@@ -874,15 +940,23 @@ function bindPass(id,p,which){
       cAud.currentTime=t;
     };
   }
-  if(btn&&p)btn.onclick=(e)=>{
+  if(btn&&p)btn.onclick=function(e){
     e.stopPropagation();
-    if(aPlay()&&aPlayUiId===id){aStop();}
-    else{
-      aPlan(p.audioPlan,function(){aSyncPlayBtns();},id);
-      btn.innerHTML=STOP;
-      if(which==='hearing')didPlayHearing=true;
-      if(which==='faith')didPlayFaith=true;
+    if(aPlayUiId===id&&cAud&&cIdx<cPlan.length){
+      if(!cAud.paused){
+        cAud.pause();
+        aSyncPlayBtns();
+        return;
+      }
+      void cAud.play().then(function(){aSyncPlayBtns();}).catch(function(){aSyncPlayBtns();});
+      return;
     }
+    clearLoopTimer();
+    clearLoopWaitUi();
+    aPlan(p.audioPlan,function(){clearLoopWaitUi();aSyncPlayBtns();},id);
+    btn.innerHTML=PAUSE;
+    if(which==='hearing')didPlayHearing=true;
+    if(which==='faith')didPlayFaith=true;
   };
   if(te&&pe){let o=false;te.onclick=()=>{o=!o;pe.classList.toggle('expanded',o);te.textContent=o?'收合':'展開全文';};}
 
