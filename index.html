@@ -501,7 +501,7 @@ function apiOk(){return !!GAS_URL&&!!API_KEY;}
 /* ── Audio（解析方式對齊 lamrim_book/src/transcripts/lamrim.ts） ── */
 let cAud=null,cPlan=[],cIdx=0,aCb=null,aGen=0,aPlayUiId=null;
 let aStepStartSec=0,aStepEndSec=null,aSeekDrag=false;
-let aLoopTimer=null;
+let aLoopTimer=null,aStepCtl=null;
 function aPlay(){return cAud&&!cAud.paused;}
 function fmtAudioT(sec){
   const s=Math.max(0,Math.floor(sec));
@@ -553,6 +553,7 @@ function saveAudioVol(v){
 }
 function aStop(){
   aGen++;
+  if(aStepCtl){try{aStepCtl.abort();}catch(e){}aStepCtl=null;}
   clearLoopTimer();
   clearLoopWaitUi();
   const prevUi=aPlayUiId;
@@ -608,15 +609,28 @@ async function aStep(){
     const done=aCb;aCb=null;aStop();done&&done();
     return;
   }
-  if(cAud){
-    try{cAud.pause();cAud.removeAttribute('src');cAud.load();}catch(e){}
-    cAud=null;
+  const reusing=cAud&&cAud._url===url;
+  if(aStepCtl){try{aStepCtl.abort();}catch(e){}}
+  aStepCtl=new AbortController();
+  const sig=aStepCtl.signal;
+  let a;
+  if(reusing){
+    a=cAud;
+    try{a.pause();}catch(e){}
+    try{a.currentTime=s.startSec;}catch(e){}
+    a.volume=loadAudioVol();
+  }else{
+    if(cAud){
+      try{cAud.pause();cAud.removeAttribute('src');cAud.load();}catch(e){}
+      cAud=null;
+    }
+    a=new Audio(url);
+    a._url=url;
+    a.volume=loadAudioVol();
+    cAud=a;
   }
   aStepStartSec=s.startSec;
   aStepEndSec=s.endSec;
-  const a=new Audio(url);
-  a.volume=loadAudioVol();
-  cAud=a;
   let advanced=false;
   function nx(){
     if(advanced)return;
@@ -634,20 +648,26 @@ async function aStep(){
     clearLoopWaitUi();
     aCb&&aCb();
   }
-  a.addEventListener('loadedmetadata',function(){
-    if(myGen!==aGen)return;
-    if(s.endSec==null&&Number.isFinite(a.duration))aStepEndSec=a.duration;
-    a.currentTime=s.startSec;
-    aUpdateUi();
-    void a.play().then(function(){aSyncPlayBtns();}).catch(function(){aSyncPlayBtns();});
-  });
   a.addEventListener('timeupdate',function(){
     if(myGen!==aGen)return;
     if(!aSeekDrag)aUpdateUi();
     if(s.endSec!==null&&a.currentTime>=s.endSec){a.pause();nx();}
-  });
-  a.addEventListener('ended',function(){if(myGen!==aGen)return;nx();});
-  a.addEventListener('error',function(){if(myGen!==aGen)return;nx();});
+  },{signal:sig});
+  a.addEventListener('ended',function(){if(myGen!==aGen)return;nx();},{signal:sig});
+  a.addEventListener('error',function(){if(myGen!==aGen)return;nx();},{signal:sig});
+  if(reusing){
+    if(s.endSec==null&&Number.isFinite(a.duration))aStepEndSec=a.duration;
+    aUpdateUi();
+    void a.play().then(function(){aSyncPlayBtns();}).catch(function(){aSyncPlayBtns();});
+  }else{
+    a.addEventListener('loadedmetadata',function(){
+      if(myGen!==aGen)return;
+      if(s.endSec==null&&Number.isFinite(a.duration))aStepEndSec=a.duration;
+      a.currentTime=s.startSec;
+      aUpdateUi();
+      void a.play().then(function(){aSyncPlayBtns();}).catch(function(){aSyncPlayBtns();});
+    },{signal:sig});
+  }
 }
 
 /* ── Passage selection ── */
