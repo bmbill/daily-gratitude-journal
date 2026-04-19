@@ -617,7 +617,10 @@ async function aStep(){
   const a=new Audio(url);
   a.volume=loadAudioVol();
   cAud=a;
+  let advanced=false;
   function nx(){
+    if(advanced)return;
+    advanced=true;
     cIdx++;
     if(cIdx<cPlan.length){void aStep();return;}
     const uid=aPlayUiId;
@@ -652,7 +655,8 @@ function pickH(d){return d.hearingBenefits[hash(todayISO()+'_h')%d.hearingBenefi
 function pickF(d){
   const t=todayISO(),n=d.faithGratitude.length;let idx=0,sd=t;
   try{const i=localStorage.getItem('dn_fi'),s=localStorage.getItem('dn_fs');
-    if(i!==null&&s!==null){idx=parseInt(i,10);sd=s;}}catch(e){}
+    if(i!==null&&s!==null){idx=parseInt(i,10);sd=s;}
+    else{localStorage.setItem('dn_fi','0');localStorage.setItem('dn_fs',t);}}catch(e){}
   const diff=Math.floor((new Date(t)-new Date(sd))/864e5);
   if(diff>=3){idx=(idx+Math.floor(diff/3))%n;const rem=diff%3,ns=new Date(new Date(t).getTime()-rem*864e5);
     sd=ns.getFullYear()+'-'+String(ns.getMonth()+1).padStart(2,'0')+'-'+String(ns.getDate()).padStart(2,'0');
