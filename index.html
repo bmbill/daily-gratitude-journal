@@ -609,21 +609,26 @@ async function aStep(){
     const done=aCb;aCb=null;aStop();done&&done();
     return;
   }
-  const reusing=cAud&&cAud._url===url;
+  const sameUrl=cAud&&cAud._url===url;
   if(aStepCtl){try{aStepCtl.abort();}catch(e){}}
   aStepCtl=new AbortController();
   const sig=aStepCtl.signal;
   let a;
-  if(reusing){
+  if(sameUrl){
     a=cAud;
     try{a.pause();}catch(e){}
     try{a.currentTime=s.startSec;}catch(e){}
     a.volume=loadAudioVol();
+  }else if(cAud){
+    // 換講次（跨卡帶）：沿用同一個 Audio 元素以保留手機端的使用者手勢解鎖，
+    // 只改 src；若建立新 Audio，setTimeout 內的 play() 會被 autoplay 政策擋下。
+    a=cAud;
+    try{a.pause();}catch(e){}
+    a.src=url;
+    a._url=url;
+    a.volume=loadAudioVol();
+    try{a.load();}catch(e){}
   }else{
-    if(cAud){
-      try{cAud.pause();cAud.removeAttribute('src');cAud.load();}catch(e){}
-      cAud=null;
-    }
     a=new Audio(url);
     a._url=url;
     a.volume=loadAudioVol();
@@ -655,7 +660,7 @@ async function aStep(){
   },{signal:sig});
   a.addEventListener('ended',function(){if(myGen!==aGen)return;nx();},{signal:sig});
   a.addEventListener('error',function(){if(myGen!==aGen)return;nx();},{signal:sig});
-  if(reusing){
+  if(sameUrl){
     if(s.endSec==null&&Number.isFinite(a.duration))aStepEndSec=a.duration;
     aUpdateUi();
     void a.play().then(function(){aSyncPlayBtns();}).catch(function(){aSyncPlayBtns();});
