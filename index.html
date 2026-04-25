@@ -1612,11 +1612,11 @@ function showSt(msg,type){
    ══════════════════════════════════════════════ */
 const SUTRA_DB='dn_sutra_db', SUTRA_STORE='pdfs';
 const SUTRA_VOLS_DEFAULT=[
-  {idx:1,name:'第一冊',totalPages:170,scrollStart:401,scrollEnd:416},
-  {idx:2,name:'第二冊',totalPages:153,scrollStart:417,scrollEnd:431},
-  {idx:3,name:'第三冊',totalPages:163,scrollStart:432,scrollEnd:447},
-  {idx:4,name:'第四冊',totalPages:157,scrollStart:448,scrollEnd:462},
-  {idx:5,name:'第五冊',totalPages:168,scrollStart:463,scrollEnd:478}
+  {idx:1,name:'第一冊',totalPages:170,scrollStart:401,scrollEnd:416,url:'pdfs/sutra2-vol1.pdf'},
+  {idx:2,name:'第二冊',totalPages:153,scrollStart:417,scrollEnd:431,url:'pdfs/sutra2-vol2.pdf'},
+  {idx:3,name:'第三冊',totalPages:163,scrollStart:432,scrollEnd:447,url:'pdfs/sutra2-vol3.pdf'},
+  {idx:4,name:'第四冊',totalPages:157,scrollStart:448,scrollEnd:462,url:'pdfs/sutra2-vol4.pdf'},
+  {idx:5,name:'第五冊',totalPages:168,scrollStart:463,scrollEnd:478,url:'pdfs/sutra2-vol5.pdf'}
 ];
 const SUTRA_DEFAULTS={
   assembly:2, dailyPages:5,
@@ -1756,6 +1756,77 @@ function sutraStats(){
 async function sutraRefreshAvail(){
   const keys=await sutraListPdfKeys();
   sutraVolumesAvail=new Set(keys.map(k=>parseInt(k,10)).filter(n=>n>=1&&n<=5));
+}
+
+/* Auto-download bundled PDFs into IndexedDB on first visit */
+const sutraDlState={}; // {volIdx: {status:'idle|downloading|done|error', pct:0, err:''}}
+let sutraEnsureRunning=false;
+function sutraDlSet(vi,patch){
+  sutraDlState[vi]=Object.assign({status:'idle',pct:0,err:''},sutraDlState[vi]||{},patch);
+  const row=document.querySelector('.sutra-dl-row[data-vol="'+vi+'"] .file-state');
+  if(row){
+    const s=sutraDlState[vi];
+    let txt='', cls='';
+    if(s.status==='done'){txt='✅ 已下載（離線可讀）';cls='ok';}
+    else if(s.status==='downloading'){txt='⏬ 下載中… '+s.pct+'%';}
+    else if(s.status==='error'){txt='❌ 失敗：'+s.err;cls='err';}
+    else txt='⏳ 等待下載';
+    row.textContent=txt;
+    row.className='file-state'+(cls?' '+cls:'');
+  }
+  const sub=document.getElementById('sutraDlSub');
+  if(sub){
+    const done=Object.values(sutraDlState).filter(s=>s.status==='done').length;
+    const total=sutraVolumesAvail.size+Object.values(sutraDlState).filter(s=>s.status!=='done'&&s.status!=='idle').length;
+    sub.textContent=sutraVolumesAvail.size+'/5 已就緒';
+  }
+}
+async function sutraDownload(volIdx){
+  const v=sutraVol(volIdx);if(!v||!v.url)throw new Error('no url');
+  sutraDlSet(volIdx,{status:'downloading',pct:0,err:''});
+  const res=await fetch(v.url,{cache:'no-store'});
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  const total=parseInt(res.headers.get('Content-Length')||'0',10);
+  const reader=res.body&&res.body.getReader?res.body.getReader():null;
+  let blob;
+  if(reader&&total>0){
+    const chunks=[];let received=0;
+    while(true){
+      const {done,value}=await reader.read();
+      if(done)break;
+      chunks.push(value);received+=value.length;
+      const pct=Math.min(99,Math.floor(received/total*100));
+      sutraDlSet(volIdx,{status:'downloading',pct});
+    }
+    blob=new Blob(chunks,{type:'application/pdf'});
+  }else{
+    blob=await res.blob();
+  }
+  await sutraSavePdf(volIdx,blob);
+  await sutraRefreshAvail();
+  sutraDlSet(volIdx,{status:'done',pct:100});
+  return blob;
+}
+async function sutraEnsurePdfs(){
+  if(sutraEnsureRunning)return;
+  sutraEnsureRunning=true;
+  try{
+    await sutraRefreshAvail();
+    for(let i=1;i<=5;i++){
+      if(sutraVolumesAvail.has(i)){sutraDlSet(i,{status:'done',pct:100});continue;}
+      try{
+        await sutraDownload(i);
+        // If current volume just arrived, render it
+        if(i===sutraCfg.currentVolume&&!sutraPdfDoc){
+          await sutraOpenVolume(i,sutraCfg.currentPage);
+        }
+      }catch(e){
+        sutraDlSet(i,{status:'error',err:String(e.message||e)});
+      }
+    }
+  }finally{
+    sutraEnsureRunning=false;
+  }
 }
 
 async function sutraOpenVolume(volIdx,page){
@@ -1948,22 +2019,29 @@ function buildSutra(){
       <div id="sutraSt" style="margin-top:8px;"></div>
     </div>
 
-    <!-- PDF Setup -->
+    <!-- PDF Status -->
     <div class="sutra-card">
-      <div class="sutra-title"><span>PDF 設定</span><span class="sub">${sutraVolumesAvail.size}/5 已上傳</span></div>
+      <div class="sutra-title"><span>PDF 下載狀態</span><span class="sub" id="sutraDlSub">${sutraVolumesAvail.size}/5 已就緒</span></div>
       <div class="sutra-upload-list">
         ${cfg.volumes.map(vol=>{
           const has=sutraVolumesAvail.has(vol.idx);
-          return `<div class="sutra-upload-row" data-vol="${vol.idx}">
+          const st=sutraDlState[vol.idx]||{};
+          let txt='', cls='';
+          if(has){txt='✅ 已下載（離線可讀）';cls='ok';}
+          else if(st.status==='downloading'){txt='⏬ 下載中… '+(st.pct||0)+'%';}
+          else if(st.status==='error'){txt='❌ 失敗：'+esc(st.err||'');cls='err';}
+          else txt='⏳ 等待下載';
+          return `<div class="sutra-upload-row sutra-dl-row" data-vol="${vol.idx}">
             <span class="vol-name">${esc(vol.name)}</span>
-            <span class="file-state${has?' ok':''}">${has?'✅ 已儲存（離線可讀）':'尚未上傳'}</span>
-            <label class="up-btn">${has?'更換':'上傳'}<input type="file" accept="application/pdf,.pdf" data-vol="${vol.idx}" /></label>
-            ${has?'<button class="clr-btn" data-vol="'+vol.idx+'">清除</button>':''}
+            <span class="file-state${cls?' '+cls:''}">${txt}</span>
+            ${has
+              ?'<button class="clr-btn" data-act="redl" data-vol="'+vol.idx+'">重新下載</button>'
+              :'<button class="clr-btn" data-act="retry" data-vol="'+vol.idx+'">重試</button>'}
           </div>`;
         }).join('')}
       </div>
       <div style="margin-top:10px;font-size:.72rem;color:var(--muted);line-height:1.6;">
-        ※ PDF 會儲存在瀏覽器（IndexedDB），僅本機可讀。可離線使用，無需上傳到網路。
+        ※ PDF 首次開啟會自動下載到瀏覽器（IndexedDB），約 80 MB。下載完成後即可離線誦讀。
       </div>
     </div>
 
@@ -2036,45 +2114,35 @@ function buildSutra(){
   document.getElementById('sutraDone').onclick=sutraComplete;
   document.getElementById('sutraReset').onclick=sutraResetToday;
 
-  // Upload handlers
-  document.querySelectorAll('.sutra-upload-row input[type="file"]').forEach(inp=>{
-    inp.onchange=async function(){
-      const file=this.files&&this.files[0];if(!file)return;
+  // Download row buttons (re-download / retry)
+  document.querySelectorAll('.sutra-dl-row .clr-btn').forEach(b=>{
+    b.onclick=async function(){
       const vi=parseInt(this.dataset.vol,10);
-      const lbl=this.parentElement;const orig=lbl.firstChild.nodeValue;
-      lbl.firstChild.nodeValue='儲存中…';
-      try{
-        await sutraSavePdf(vi,file);
+      const act=this.dataset.act;
+      if(act==='redl'){
+        if(!confirm('重新下載「'+sutraVol(vi).name+'」？'))return;
+        await sutraDeletePdf(vi);
         await sutraRefreshAvail();
         if(sutraPdfVolume===vi){sutraPdfDoc=null;sutraPdfVolume=null;}
-        sutraSt('「'+sutraVol(vi).name+'」已儲存','ok');
-        buildSutra();
-        if(sutraCfg.currentVolume===vi)sutraOpenVolume(vi,sutraCfg.currentPage);
+      }
+      try{
+        await sutraDownload(vi);
+        if(sutraCfg.currentVolume===vi){sutraPdfDoc=null;await sutraOpenVolume(vi,sutraCfg.currentPage);}
+        sutraSt('「'+sutraVol(vi).name+'」下載完成','ok');
       }catch(e){
-        sutraSt('儲存失敗：'+(e.message||e),'err');
-        lbl.firstChild.nodeValue=orig;
+        sutraSt('下載失敗：'+(e.message||e),'err');
       }
     };
   });
-  document.querySelectorAll('.sutra-upload-row .clr-btn').forEach(b=>{
-    b.onclick=async function(){
-      const vi=parseInt(this.dataset.vol,10);
-      if(!confirm('確定清除「'+sutraVol(vi).name+'」的 PDF？'))return;
-      await sutraDeletePdf(vi);
-      await sutraRefreshAvail();
-      if(sutraPdfVolume===vi){sutraPdfDoc=null;sutraPdfVolume=null;}
-      buildSutra();
-    };
-  });
 
-  // Auto-open current volume PDF
+  // Auto-open current volume PDF if already downloaded; else download all in background
   if(sutraVolumesAvail.has(sutraCfg.currentVolume)){
     sutraOpenVolume(sutraCfg.currentVolume,sutraCfg.currentPage);
   }else{
-    // pick first available volume
     const first=[...sutraVolumesAvail].sort((a,b)=>a-b)[0];
     if(first){sutraCfg.currentVolume=first;sutraCfg.currentPage=1;saveSutraCfg();sutraOpenVolume(first,1);}
   }
+  if(sutraVolumesAvail.size<5)sutraEnsurePdfs();
 }
 
 function sutraSt(msg,type){
