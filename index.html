@@ -416,9 +416,181 @@
       box-shadow:0 4px 16px rgba(0,0,0,.2);
     }
 
+    /* ══ Sutra (大般若經) System ══ */
+    .sutra-card {
+      background:var(--card); border-radius:var(--r); padding:14px 16px;
+      box-shadow:0 2px 8px var(--shadow); margin-bottom:14px;
+    }
+    .sutra-title {
+      font-family:"Noto Serif TC",serif; font-size:.95rem; font-weight:600;
+      color:var(--accent); margin-bottom:10px; display:flex;
+      align-items:center; justify-content:space-between; gap:8px;
+    }
+    .sutra-title .sub { font-size:.72rem; color:var(--muted); font-weight:400; }
+    .sutra-prog-row {
+      display:flex; align-items:center; gap:10px; margin-bottom:10px;
+    }
+    .sutra-prog-bar {
+      flex:1; height:14px; background:var(--border); border-radius:7px;
+      overflow:hidden; position:relative;
+    }
+    .sutra-prog-fill {
+      height:100%; background:linear-gradient(90deg,var(--accent-lt),var(--accent));
+      border-radius:7px; transition:width .4s ease;
+    }
+    .sutra-prog-text {
+      position:absolute; inset:0; display:flex; align-items:center;
+      justify-content:center; font-size:.62rem; font-weight:600; color:#fff;
+      text-shadow:0 1px 2px rgba(0,0,0,.3);
+    }
+    .sutra-info-grid {
+      display:grid; grid-template-columns:repeat(3,1fr); gap:8px;
+      margin-bottom:10px;
+    }
+    .sutra-info {
+      background:var(--bg); border-radius:8px; padding:8px 6px;
+      text-align:center;
+    }
+    .sutra-info .v {
+      font-family:"Noto Serif TC",serif; font-size:1rem; font-weight:700;
+      color:var(--accent);
+    }
+    .sutra-info .l { font-size:.66rem; color:var(--muted); margin-top:2px; }
+
+    .sutra-cfg-row {
+      display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+      font-size:.82rem; color:var(--muted);
+    }
+    .sutra-cfg-row label { white-space:nowrap; }
+    .sutra-cfg-row input[type="number"] {
+      width:64px; padding:4px 6px; font-size:.85rem;
+      border:1px solid var(--border); border-radius:6px;
+      font-family:inherit; color:var(--text); background:var(--card);
+      outline:none;
+    }
+    .sutra-cfg-row input[type="number"]:focus { border-color:var(--accent); }
+
+    .sutra-vol-tabs {
+      display:flex; gap:4px; flex-wrap:wrap; margin-bottom:10px;
+    }
+    .sutra-vol-tab {
+      flex:1; min-width:60px; padding:7px 4px; border:1.5px solid var(--border);
+      background:var(--card); color:var(--muted); border-radius:8px;
+      font-size:.78rem; font-family:inherit; cursor:pointer;
+      transition:all .15s; text-align:center;
+    }
+    .sutra-vol-tab.active {
+      background:var(--accent); color:#fff; border-color:var(--accent);
+      font-weight:600;
+    }
+    .sutra-vol-tab.no-pdf { opacity:.5; }
+    .sutra-vol-tab .vt-sub { font-size:.62rem; opacity:.85; margin-top:1px; }
+
+    .sutra-viewer-wrap {
+      background:#2c2416; border-radius:var(--r); overflow:hidden;
+      margin-bottom:10px; min-height:240px; display:flex;
+      align-items:center; justify-content:center; position:relative;
+    }
+    .sutra-canvas {
+      display:block; max-width:100%; height:auto; background:#fff;
+      box-shadow:0 4px 20px rgba(0,0,0,.4);
+    }
+    .sutra-loading-pdf {
+      color:#fff; font-size:.85rem; padding:32px 16px; text-align:center;
+    }
+    .sutra-loading-pdf .spinner {
+      border-color:rgba(255,255,255,.2); border-top-color:#fff;
+    }
+    .sutra-empty-vol {
+      color:#d6c8ae; font-size:.85rem; padding:32px 16px; text-align:center;
+      line-height:1.7;
+    }
+
+    .sutra-pgnav {
+      display:flex; align-items:center; justify-content:center; gap:6px;
+      margin-bottom:10px; flex-wrap:wrap;
+    }
+    .sutra-pgnav button {
+      width:36px; height:36px; border:1.5px solid var(--border);
+      background:var(--card); color:var(--accent); border-radius:8px;
+      font-size:.95rem; font-family:inherit; cursor:pointer; transition:all .15s;
+      display:inline-flex; align-items:center; justify-content:center;
+    }
+    .sutra-pgnav button:hover { background:var(--accent-bg); border-color:var(--accent); }
+    .sutra-pgnav button:active { transform:scale(.94); }
+    .sutra-pgnav button:disabled { opacity:.3; cursor:not-allowed; }
+    .sutra-pgnav button.wide { width:auto; padding:0 12px; font-size:.82rem; }
+    .sutra-pgnav .pgin {
+      width:78px; padding:6px 8px; font-size:.85rem;
+      border:1.5px solid var(--border); border-radius:8px;
+      font-family:inherit; text-align:center; color:var(--text);
+      background:var(--card); outline:none;
+      font-variant-numeric:tabular-nums;
+    }
+    .sutra-pgnav .pgin:focus { border-color:var(--accent); }
+    .sutra-pgnav .ptot { font-size:.78rem; color:var(--muted); white-space:nowrap; }
+
+    .sutra-actions {
+      display:flex; gap:8px; flex-wrap:wrap;
+    }
+    .sutra-actions button {
+      flex:1; min-width:120px; padding:10px 12px; border:none; border-radius:10px;
+      font-size:.88rem; font-weight:600; font-family:inherit; cursor:pointer;
+      transition:all .15s;
+    }
+    .sutra-btn-primary { background:var(--accent); color:#fff; }
+    .sutra-btn-primary:hover { background:#7a5e38; }
+    .sutra-btn-primary:disabled { opacity:.5; cursor:not-allowed; }
+    .sutra-btn-ghost {
+      background:var(--card); color:var(--accent); border:1.5px solid var(--accent) !important;
+    }
+    .sutra-btn-ghost:hover { background:var(--accent-bg); }
+
+    .sutra-upload-list {
+      display:flex; flex-direction:column; gap:6px; margin-top:8px;
+    }
+    .sutra-upload-row {
+      display:flex; align-items:center; gap:8px; padding:8px 10px;
+      background:var(--bg); border-radius:8px; font-size:.82rem;
+    }
+    .sutra-upload-row .vol-name { font-weight:600; flex-shrink:0; min-width:60px; }
+    .sutra-upload-row .file-state { flex:1; color:var(--muted); font-size:.75rem; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .sutra-upload-row .file-state.ok { color:var(--green); }
+    .sutra-upload-row label.up-btn {
+      padding:5px 12px; background:var(--accent); color:#fff;
+      border-radius:6px; font-size:.75rem; cursor:pointer; white-space:nowrap;
+    }
+    .sutra-upload-row label.up-btn:hover { background:#7a5e38; }
+    .sutra-upload-row label.up-btn input { display:none; }
+    .sutra-upload-row .clr-btn {
+      padding:5px 8px; background:transparent; color:var(--muted);
+      border:1px solid var(--border); border-radius:6px; font-size:.7rem;
+      cursor:pointer; font-family:inherit;
+    }
+    .sutra-upload-row .clr-btn:hover { color:#8b3a3a; border-color:#8b3a3a; }
+
+    .sutra-hist {
+      display:flex; flex-direction:column; gap:6px; max-height:280px;
+      overflow-y:auto; padding-right:4px;
+    }
+    .sutra-hist-empty {
+      text-align:center; color:var(--muted); font-size:.85rem; padding:20px;
+    }
+    .sutra-hist-row {
+      display:flex; align-items:center; gap:8px; padding:8px 10px;
+      background:var(--bg); border-radius:8px; font-size:.82rem;
+    }
+    .sutra-hist-row .h-date { font-weight:600; color:var(--text); min-width:84px; }
+    .sutra-hist-row .h-info { flex:1; color:var(--muted); font-size:.75rem; }
+    .sutra-hist-row .h-pages {
+      font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums;
+    }
+
     @media(max-width:400px) {
       #app { padding:12px; padding-bottom:70px; }
       .stats-grid { grid-template-columns:repeat(2,1fr); }
+      .sutra-info-grid { grid-template-columns:repeat(3,1fr); }
+      .sutra-info .v { font-size:.9rem; }
     }
   </style>
 </head>
@@ -438,6 +610,10 @@
   <button id="tabFarm" title="農場">
     <svg viewBox="0 0 24 24"><path d="M12 22c4.97 0 9-4.03 9-9-4.97 0-9 4.03-9 9zM5.6 10.25c0 1.38 1.12 2.5 2.5 2.5.53 0 1.01-.16 1.42-.44l-.02.19c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5l-.02-.19c.4.28.89.44 1.42.44 1.38 0 2.5-1.12 2.5-2.5 0-1-.59-1.85-1.43-2.25.84-.4 1.43-1.25 1.43-2.25 0-1.38-1.12-2.5-2.5-2.5-.53 0-1.01.16-1.42.44l.02-.19C14.5 2.12 13.38 1 12 1S9.5 2.12 9.5 3.5l.02.19c-.4-.28-.89-.44-1.42-.44-1.38 0-2.5 1.12-2.5 2.5 0 1 .59 1.85 1.43 2.25-.84.4-1.43 1.25-1.43 2.25zM12 5.5c1.38 0 2.5 1.12 2.5 2.5s-1.12 2.5-2.5 2.5S9.5 9.38 9.5 8s1.12-2.5 2.5-2.5zM3 13c0 4.97 4.03 9 9 9 0-4.97-4.03-9-9-9z"/></svg>
     農場
+  </button>
+  <button id="tabSutra" title="誦經">
+    <svg viewBox="0 0 24 24"><path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/></svg>
+    誦經
   </button>
 </div>
 
@@ -1117,15 +1293,18 @@ function switchTab(tab){
   document.getElementById('tabHome').classList.toggle('active',tab==='home');
   document.getElementById('tabRec').classList.toggle('active',tab==='records');
   document.getElementById('tabFarm').classList.toggle('active',tab==='farm');
+  document.getElementById('tabSutra').classList.toggle('active',tab==='sutra');
   if(tab==='home')buildPage();
   else if(tab==='records')buildRecords();
-  else buildFarm();
+  else if(tab==='farm')buildFarm();
+  else if(tab==='sutra'){sutraRefreshAvail().then(buildSutra);}
 }
 
 function bindTabs(){
   document.getElementById('tabHome').onclick=()=>switchTab('home');
   document.getElementById('tabRec').onclick=()=>switchTab('records');
   document.getElementById('tabFarm').onclick=()=>switchTab('farm');
+  document.getElementById('tabSutra').onclick=()=>switchTab('sutra');
 }
 
 /* ══════════════════════════════════════════════
@@ -1426,6 +1605,528 @@ function buildFarm(){
 function showSt(msg,type){
   const el=document.getElementById('stA');
   if(el){el.innerHTML='<div class="sm '+type+'">'+esc(msg)+'</div>';setTimeout(()=>{el.innerHTML='';},4000);}
+}
+
+/* ══════════════════════════════════════════════
+   每日誦大般若經
+   ══════════════════════════════════════════════ */
+const SUTRA_DB='dn_sutra_db', SUTRA_STORE='pdfs';
+const SUTRA_VOLS_DEFAULT=[
+  {idx:1,name:'第一冊',totalPages:170,scrollStart:401,scrollEnd:416},
+  {idx:2,name:'第二冊',totalPages:153,scrollStart:417,scrollEnd:431},
+  {idx:3,name:'第三冊',totalPages:163,scrollStart:432,scrollEnd:447},
+  {idx:4,name:'第四冊',totalPages:157,scrollStart:448,scrollEnd:462},
+  {idx:5,name:'第五冊',totalPages:168,scrollStart:463,scrollEnd:478}
+];
+const SUTRA_DEFAULTS={
+  assembly:2, dailyPages:5,
+  currentVolume:1, currentPage:1,
+  volumes:SUTRA_VOLS_DEFAULT.map(v=>({...v}))
+};
+
+let sutraCfg=loadSutraCfg();
+let sutraHist=loadSutraHist();
+let sutraPdfDoc=null;        // active pdf.js document
+let sutraPdfVolume=null;     // which volume is loaded
+let sutraRenderTask=null;    // active render task
+let sutraVolumesAvail=new Set();
+let sutraSessionStart=null;  // page number when this session started
+let _pdfjsLoading=null;
+
+function loadSutraCfg(){
+  try{
+    const s=localStorage.getItem('dn_sutra_cfg');
+    if(!s)return{...SUTRA_DEFAULTS,volumes:SUTRA_DEFAULTS.volumes.map(v=>({...v}))};
+    const o=JSON.parse(s);
+    return{...SUTRA_DEFAULTS,...o,
+      volumes:Array.isArray(o.volumes)&&o.volumes.length===5
+        ?o.volumes.map((v,i)=>({...SUTRA_VOLS_DEFAULT[i],...v}))
+        :SUTRA_DEFAULTS.volumes.map(v=>({...v}))};
+  }catch(e){return{...SUTRA_DEFAULTS,volumes:SUTRA_DEFAULTS.volumes.map(v=>({...v}))};}
+}
+function saveSutraCfg(){try{localStorage.setItem('dn_sutra_cfg',JSON.stringify(sutraCfg));}catch(e){}}
+function loadSutraHist(){try{const s=localStorage.getItem('dn_sutra_hist');return s?JSON.parse(s):[];}catch(e){return[];}}
+function saveSutraHist(){try{localStorage.setItem('dn_sutra_hist',JSON.stringify(sutraHist));}catch(e){}}
+
+/* IndexedDB helpers */
+function sutraOpenDb(){
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open(SUTRA_DB,1);
+    r.onupgradeneeded=function(e){
+      const db=e.target.result;
+      if(!db.objectStoreNames.contains(SUTRA_STORE))db.createObjectStore(SUTRA_STORE);
+    };
+    r.onsuccess=function(e){res(e.target.result);};
+    r.onerror=function(e){rej(e.target.error);};
+  });
+}
+async function sutraSavePdf(volIdx,blob){
+  const db=await sutraOpenDb();
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(SUTRA_STORE,'readwrite');
+    tx.objectStore(SUTRA_STORE).put(blob,volIdx);
+    tx.oncomplete=()=>res();
+    tx.onerror=e=>rej(e.target.error);
+  });
+}
+async function sutraLoadPdfBlob(volIdx){
+  const db=await sutraOpenDb();
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(SUTRA_STORE,'readonly');
+    const r=tx.objectStore(SUTRA_STORE).get(volIdx);
+    r.onsuccess=()=>res(r.result||null);
+    r.onerror=e=>rej(e.target.error);
+  });
+}
+async function sutraDeletePdf(volIdx){
+  const db=await sutraOpenDb();
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(SUTRA_STORE,'readwrite');
+    tx.objectStore(SUTRA_STORE).delete(volIdx);
+    tx.oncomplete=()=>res();
+    tx.onerror=e=>rej(e.target.error);
+  });
+}
+async function sutraListPdfKeys(){
+  try{
+    const db=await sutraOpenDb();
+    return new Promise((res,rej)=>{
+      const tx=db.transaction(SUTRA_STORE,'readonly');
+      const r=tx.objectStore(SUTRA_STORE).getAllKeys();
+      r.onsuccess=()=>res(r.result||[]);
+      r.onerror=e=>rej(e.target.error);
+    });
+  }catch(e){return[];}
+}
+
+/* PDF.js loader */
+async function loadPdfJs(){
+  if(window.pdfjsLib)return window.pdfjsLib;
+  if(_pdfjsLoading)return _pdfjsLoading;
+  _pdfjsLoading=new Promise((res,rej)=>{
+    const ver='3.11.174';
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/'+ver+'/pdf.min.js';
+    s.onload=function(){
+      try{
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc=
+          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/'+ver+'/pdf.worker.min.js';
+        res(window.pdfjsLib);
+      }catch(e){rej(e);}
+    };
+    s.onerror=function(){rej(new Error('PDF.js 載入失敗'));};
+    document.head.appendChild(s);
+  });
+  return _pdfjsLoading;
+}
+
+function sutraVol(idx){return sutraCfg.volumes[idx-1];}
+function sutraPageToScroll(volIdx,page){
+  const v=sutraVol(volIdx);if(!v||!v.totalPages)return v?v.scrollStart:0;
+  const total=v.scrollEnd-v.scrollStart+1;
+  const off=Math.min(total-1,Math.max(0,Math.floor((page-1)/v.totalPages*total)));
+  return v.scrollStart+off;
+}
+
+function sutraTodayHist(){
+  const t=todayISO();
+  return sutraHist.find(h=>h.date===t)||null;
+}
+function sutraStats(){
+  const dates=new Set();
+  let pages=0,scrolls=new Set();
+  sutraHist.forEach(h=>{
+    dates.add(h.date);
+    pages+=h.pagesRead||0;
+    if(h.scrollFrom&&h.scrollTo){
+      for(let s=h.scrollFrom;s<=h.scrollTo;s++)scrolls.add(s);
+    }
+  });
+  // streak
+  let streak=0;const today=todayISO();
+  let cd=new Date(today);
+  if(!dates.has(today))cd=new Date(cd.getTime()-864e5);
+  for(let i=0;i<365;i++){
+    const ds=cd.getFullYear()+'-'+String(cd.getMonth()+1).padStart(2,'0')+'-'+String(cd.getDate()).padStart(2,'0');
+    if(dates.has(ds)){streak++;cd=new Date(cd.getTime()-864e5);}else break;
+  }
+  return{days:dates.size,pages,scrolls:scrolls.size,streak};
+}
+
+async function sutraRefreshAvail(){
+  const keys=await sutraListPdfKeys();
+  sutraVolumesAvail=new Set(keys.map(k=>parseInt(k,10)).filter(n=>n>=1&&n<=5));
+}
+
+async function sutraOpenVolume(volIdx,page){
+  if(sutraRenderTask){try{sutraRenderTask.cancel();}catch(e){}sutraRenderTask=null;}
+  const wrap=document.getElementById('sutraViewerWrap');
+  if(wrap)wrap.innerHTML='<div class="sutra-loading-pdf"><div class="spinner"></div><div>載入 PDF…</div></div>';
+  if(sutraPdfVolume!==volIdx||!sutraPdfDoc){
+    try{
+      const blob=await sutraLoadPdfBlob(volIdx);
+      if(!blob){
+        if(wrap)wrap.innerHTML='<div class="sutra-empty-vol">尚未上傳此冊 PDF<br/>請至下方「PDF 設定」上傳檔案</div>';
+        sutraPdfDoc=null;sutraPdfVolume=null;return;
+      }
+      const pdfjs=await loadPdfJs();
+      const buf=await blob.arrayBuffer();
+      const task=pdfjs.getDocument({data:buf});
+      sutraPdfDoc=await task.promise;
+      sutraPdfVolume=volIdx;
+      // sync metadata
+      const v=sutraVol(volIdx);
+      if(v&&sutraPdfDoc.numPages&&v.totalPages!==sutraPdfDoc.numPages){
+        v.totalPages=sutraPdfDoc.numPages;saveSutraCfg();
+      }
+    }catch(e){
+      if(wrap)wrap.innerHTML='<div class="sutra-empty-vol">PDF 載入失敗：'+esc(String(e.message||e))+'</div>';
+      sutraPdfDoc=null;sutraPdfVolume=null;return;
+    }
+  }
+  await sutraRenderPage(page);
+}
+
+async function sutraRenderPage(page){
+  if(!sutraPdfDoc)return;
+  const wrap=document.getElementById('sutraViewerWrap');
+  if(!wrap)return;
+  const total=sutraPdfDoc.numPages;
+  const pn=Math.max(1,Math.min(total,page|0||1));
+  try{
+    const pdfPage=await sutraPdfDoc.getPage(pn);
+    const cw=Math.max(220,Math.min(640,wrap.clientWidth-16));
+    const vp1=pdfPage.getViewport({scale:1});
+    const scale=cw/vp1.width;
+    const vp=pdfPage.getViewport({scale});
+    const canvas=document.createElement('canvas');
+    canvas.className='sutra-canvas';
+    const dpr=Math.min(2,window.devicePixelRatio||1);
+    canvas.width=Math.floor(vp.width*dpr);
+    canvas.height=Math.floor(vp.height*dpr);
+    canvas.style.width=Math.floor(vp.width)+'px';
+    canvas.style.height=Math.floor(vp.height)+'px';
+    const ctx=canvas.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    if(sutraRenderTask){try{sutraRenderTask.cancel();}catch(e){}}
+    sutraRenderTask=pdfPage.render({canvasContext:ctx,viewport:vp});
+    await sutraRenderTask.promise;
+    sutraRenderTask=null;
+    wrap.innerHTML='';
+    wrap.appendChild(canvas);
+    // update bookmark
+    sutraCfg.currentVolume=sutraPdfVolume;
+    sutraCfg.currentPage=pn;
+    if(sutraSessionStart===null)sutraSessionStart=pn;
+    saveSutraCfg();
+    sutraUpdateBars();
+  }catch(e){
+    if(e&&e.name==='RenderingCancelledException')return;
+    wrap.innerHTML='<div class="sutra-empty-vol">頁面渲染失敗：'+esc(String(e.message||e))+'</div>';
+  }
+}
+
+function sutraUpdateBars(){
+  const v=sutraVol(sutraCfg.currentVolume);
+  const pg=sutraCfg.currentPage;
+  const tot=sutraPdfDoc?sutraPdfDoc.numPages:(v?v.totalPages:0);
+  const pgIn=document.getElementById('sutraPgIn');
+  const pgTot=document.getElementById('sutraPgTot');
+  const sInfo=document.getElementById('sutraScrollInfo');
+  const today=sutraTodayHist();
+  const start=(today&&today.volume===sutraCfg.currentVolume)
+    ?today.startPage
+    :(sutraSessionStart!==null?sutraSessionStart:pg);
+  const todayPages=Math.max(0,pg-start+1);
+  const target=Math.max(1,parseInt(sutraCfg.dailyPages,10)||1);
+  if(pgIn)pgIn.value=String(pg);
+  if(pgTot)pgTot.textContent='/ '+tot;
+  if(sInfo){
+    const sc=sutraPageToScroll(sutraCfg.currentVolume,pg);
+    sInfo.textContent='第 '+sc+' 卷';
+  }
+  // progress bars
+  const pf=document.getElementById('sutraProgFill');
+  const pt=document.getElementById('sutraProgText');
+  if(pf&&pt){
+    const pct=Math.min(100,Math.round(todayPages/target*100));
+    pf.style.width=pct+'%';
+    pt.textContent=todayPages+' / '+target+' 頁（今日）';
+  }
+  const ti=document.getElementById('sutraInfoToday');
+  if(ti)ti.textContent=todayPages;
+  // Disable nav buttons
+  const prev=document.getElementById('sutraPrev');
+  const next=document.getElementById('sutraNext');
+  if(prev)prev.disabled=pg<=1;
+  if(next)next.disabled=tot>0&&pg>=tot;
+}
+
+function sutraGotoPage(volIdx,page){
+  if(volIdx===sutraPdfVolume&&sutraPdfDoc){
+    sutraRenderPage(page);
+  }else{
+    sutraOpenVolume(volIdx,page);
+  }
+}
+
+function buildSutra(){
+  aStop();
+  const cfg=sutraCfg;
+  const v=sutraVol(cfg.currentVolume);
+  const today=sutraTodayHist();
+  const st=sutraStats();
+  const allUploaded=sutraVolumesAvail.size>0;
+
+  app.innerHTML=`
+    <header class="hd"><h1>每日誦大般若經</h1><div class="date">${todayFmt()}</div></header>
+
+    <!-- Progress -->
+    <div class="sutra-card">
+      <div class="sutra-title">
+        <span>今日進度</span>
+        <span class="sub">第 ${cfg.assembly} 會 · ${esc(v.name)} · 第 ${sutraPageToScroll(cfg.currentVolume,cfg.currentPage)} 卷</span>
+      </div>
+      <div class="sutra-prog-row">
+        <div class="sutra-prog-bar">
+          <div class="sutra-prog-fill" id="sutraProgFill" style="width:0%"></div>
+          <div class="sutra-prog-text" id="sutraProgText">0 / ${cfg.dailyPages} 頁（今日）</div>
+        </div>
+      </div>
+      <div class="sutra-info-grid">
+        <div class="sutra-info"><div class="v" id="sutraInfoToday">0</div><div class="l">今日已誦</div></div>
+        <div class="sutra-info"><div class="v">${st.streak}</div><div class="l">連續天數</div></div>
+        <div class="sutra-info"><div class="v">${st.pages}</div><div class="l">累計頁數</div></div>
+      </div>
+      <div class="sutra-info-grid" style="grid-template-columns:repeat(3,1fr);">
+        <div class="sutra-info"><div class="v">${st.days}</div><div class="l">誦經天數</div></div>
+        <div class="sutra-info"><div class="v">${st.scrolls}</div><div class="l">已誦卷數</div></div>
+        <div class="sutra-info"><div class="v">${cfg.assembly}</div><div class="l">第幾會</div></div>
+      </div>
+      <div class="sutra-cfg-row" style="margin-top:8px;">
+        <label>每日頁數目標</label>
+        <input type="number" id="sutraDaily" min="1" max="200" value="${cfg.dailyPages}" />
+        <span style="color:var(--muted);font-size:.78rem;">${today?'· 今日已記錄':''}</span>
+      </div>
+    </div>
+
+    <!-- Reader -->
+    <div class="sutra-card">
+      <div class="sutra-title"><span>誦讀</span><span class="sub" id="sutraScrollInfo">第 ${sutraPageToScroll(cfg.currentVolume,cfg.currentPage)} 卷</span></div>
+
+      <div class="sutra-vol-tabs" id="sutraVolTabs">
+        ${cfg.volumes.map(vol=>{
+          const active=vol.idx===cfg.currentVolume;
+          const has=sutraVolumesAvail.has(vol.idx);
+          return `<button class="sutra-vol-tab${active?' active':''}${has?'':' no-pdf'}" data-vol="${vol.idx}">
+            ${esc(vol.name)}<div class="vt-sub">${vol.scrollStart}–${vol.scrollEnd}卷</div>
+          </button>`;
+        }).join('')}
+      </div>
+
+      <div class="sutra-viewer-wrap" id="sutraViewerWrap">
+        ${allUploaded
+          ?'<div class="sutra-loading-pdf"><div class="spinner"></div><div>載入中…</div></div>'
+          :'<div class="sutra-empty-vol">請至下方「PDF 設定」上傳大般若經第二會 PDF</div>'}
+      </div>
+
+      <div class="sutra-pgnav">
+        <button id="sutraFirst" title="第一頁">⏮</button>
+        <button id="sutraPrev10" title="上 10 頁">−10</button>
+        <button id="sutraPrev" title="上一頁">◀</button>
+        <input type="number" class="pgin" id="sutraPgIn" min="1" value="${cfg.currentPage}" />
+        <span class="ptot" id="sutraPgTot">/ ${v.totalPages}</span>
+        <button id="sutraNext" title="下一頁">▶</button>
+        <button id="sutraNext10" title="下 10 頁">+10</button>
+        <button id="sutraLast" title="最後一頁">⏭</button>
+      </div>
+
+      <div class="sutra-actions">
+        <button class="sutra-btn-primary" id="sutraDone">完成今日誦經</button>
+        <button class="sutra-btn-ghost" id="sutraReset">重設今日</button>
+      </div>
+      <div id="sutraSt" style="margin-top:8px;"></div>
+    </div>
+
+    <!-- PDF Setup -->
+    <div class="sutra-card">
+      <div class="sutra-title"><span>PDF 設定</span><span class="sub">${sutraVolumesAvail.size}/5 已上傳</span></div>
+      <div class="sutra-upload-list">
+        ${cfg.volumes.map(vol=>{
+          const has=sutraVolumesAvail.has(vol.idx);
+          return `<div class="sutra-upload-row" data-vol="${vol.idx}">
+            <span class="vol-name">${esc(vol.name)}</span>
+            <span class="file-state${has?' ok':''}">${has?'✅ 已儲存（離線可讀）':'尚未上傳'}</span>
+            <label class="up-btn">${has?'更換':'上傳'}<input type="file" accept="application/pdf,.pdf" data-vol="${vol.idx}" /></label>
+            ${has?'<button class="clr-btn" data-vol="'+vol.idx+'">清除</button>':''}
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="margin-top:10px;font-size:.72rem;color:var(--muted);line-height:1.6;">
+        ※ PDF 會儲存在瀏覽器（IndexedDB），僅本機可讀。可離線使用，無需上傳到網路。
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="sutra-card">
+      <div class="sutra-title"><span>誦經紀錄</span><span class="sub">最近 ${Math.min(sutraHist.length,30)} 筆</span></div>
+      <div class="sutra-hist">
+        ${sutraHist.length===0
+          ?'<div class="sutra-hist-empty">尚無紀錄，今日開始誦經吧！</div>'
+          :sutraHist.slice(0,30).map(h=>{
+            const vn=sutraVol(h.volume);
+            return `<div class="sutra-hist-row">
+              <span class="h-date">${esc(h.date)}</span>
+              <span class="h-info">${vn?esc(vn.name):'冊'+h.volume} · 第${h.startPage}–${h.endPage}頁 · 卷${h.scrollFrom}${h.scrollFrom!==h.scrollTo?'–'+h.scrollTo:''}</span>
+              <span class="h-pages">+${h.pagesRead}頁</span>
+            </div>`;
+          }).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('tabBar').style.display='flex';
+
+  // Bind events
+  document.getElementById('sutraDaily').onchange=function(){
+    const n=Math.max(1,Math.min(200,parseInt(this.value,10)||5));
+    sutraCfg.dailyPages=n;saveSutraCfg();this.value=String(n);
+    sutraUpdateBars();
+  };
+
+  document.querySelectorAll('#sutraVolTabs .sutra-vol-tab').forEach(b=>{
+    b.onclick=function(){
+      const vi=parseInt(this.dataset.vol,10);
+      // Switching volume → reset session start
+      if(vi!==sutraCfg.currentVolume){sutraSessionStart=null;}
+      sutraCfg.currentVolume=vi;
+      sutraCfg.currentPage=1;
+      saveSutraCfg();
+      document.querySelectorAll('#sutraVolTabs .sutra-vol-tab').forEach(x=>x.classList.remove('active'));
+      this.classList.add('active');
+      // Update scroll info text in title bar
+      sutraGotoPage(vi,1);
+    };
+  });
+
+  document.getElementById('sutraPrev').onclick=function(){
+    const p=Math.max(1,sutraCfg.currentPage-1);if(p!==sutraCfg.currentPage)sutraGotoPage(sutraCfg.currentVolume,p);
+  };
+  document.getElementById('sutraNext').onclick=function(){
+    const tot=sutraPdfDoc?sutraPdfDoc.numPages:sutraVol(sutraCfg.currentVolume).totalPages;
+    const p=Math.min(tot,sutraCfg.currentPage+1);if(p!==sutraCfg.currentPage)sutraGotoPage(sutraCfg.currentVolume,p);
+  };
+  document.getElementById('sutraPrev10').onclick=function(){
+    const p=Math.max(1,sutraCfg.currentPage-10);if(p!==sutraCfg.currentPage)sutraGotoPage(sutraCfg.currentVolume,p);
+  };
+  document.getElementById('sutraNext10').onclick=function(){
+    const tot=sutraPdfDoc?sutraPdfDoc.numPages:sutraVol(sutraCfg.currentVolume).totalPages;
+    const p=Math.min(tot,sutraCfg.currentPage+10);if(p!==sutraCfg.currentPage)sutraGotoPage(sutraCfg.currentVolume,p);
+  };
+  document.getElementById('sutraFirst').onclick=function(){if(sutraCfg.currentPage!==1)sutraGotoPage(sutraCfg.currentVolume,1);};
+  document.getElementById('sutraLast').onclick=function(){
+    const tot=sutraPdfDoc?sutraPdfDoc.numPages:sutraVol(sutraCfg.currentVolume).totalPages;
+    if(sutraCfg.currentPage!==tot)sutraGotoPage(sutraCfg.currentVolume,tot);
+  };
+  document.getElementById('sutraPgIn').onchange=function(){
+    const p=parseInt(this.value,10);
+    if(Number.isFinite(p)&&p>=1)sutraGotoPage(sutraCfg.currentVolume,p);
+  };
+
+  document.getElementById('sutraDone').onclick=sutraComplete;
+  document.getElementById('sutraReset').onclick=sutraResetToday;
+
+  // Upload handlers
+  document.querySelectorAll('.sutra-upload-row input[type="file"]').forEach(inp=>{
+    inp.onchange=async function(){
+      const file=this.files&&this.files[0];if(!file)return;
+      const vi=parseInt(this.dataset.vol,10);
+      const lbl=this.parentElement;const orig=lbl.firstChild.nodeValue;
+      lbl.firstChild.nodeValue='儲存中…';
+      try{
+        await sutraSavePdf(vi,file);
+        await sutraRefreshAvail();
+        if(sutraPdfVolume===vi){sutraPdfDoc=null;sutraPdfVolume=null;}
+        sutraSt('「'+sutraVol(vi).name+'」已儲存','ok');
+        buildSutra();
+        if(sutraCfg.currentVolume===vi)sutraOpenVolume(vi,sutraCfg.currentPage);
+      }catch(e){
+        sutraSt('儲存失敗：'+(e.message||e),'err');
+        lbl.firstChild.nodeValue=orig;
+      }
+    };
+  });
+  document.querySelectorAll('.sutra-upload-row .clr-btn').forEach(b=>{
+    b.onclick=async function(){
+      const vi=parseInt(this.dataset.vol,10);
+      if(!confirm('確定清除「'+sutraVol(vi).name+'」的 PDF？'))return;
+      await sutraDeletePdf(vi);
+      await sutraRefreshAvail();
+      if(sutraPdfVolume===vi){sutraPdfDoc=null;sutraPdfVolume=null;}
+      buildSutra();
+    };
+  });
+
+  // Auto-open current volume PDF
+  if(sutraVolumesAvail.has(sutraCfg.currentVolume)){
+    sutraOpenVolume(sutraCfg.currentVolume,sutraCfg.currentPage);
+  }else{
+    // pick first available volume
+    const first=[...sutraVolumesAvail].sort((a,b)=>a-b)[0];
+    if(first){sutraCfg.currentVolume=first;sutraCfg.currentPage=1;saveSutraCfg();sutraOpenVolume(first,1);}
+  }
+}
+
+function sutraSt(msg,type){
+  const el=document.getElementById('sutraSt');
+  if(!el)return;
+  el.innerHTML='<div class="sm '+type+'">'+esc(msg)+'</div>';
+  setTimeout(()=>{if(el)el.innerHTML='';},3500);
+}
+
+function sutraComplete(){
+  const vi=sutraCfg.currentVolume;
+  const v=sutraVol(vi);
+  const endPage=sutraCfg.currentPage;
+  const today=sutraTodayHist();
+  const sameVolToday=today&&today.volume===vi;
+  // Merge with existing today entry on same volume (extending the page range)
+  let realStart, realEnd;
+  if(sameVolToday){
+    realStart=Math.min(today.startPage,endPage);
+    realEnd=Math.max(today.endPage,endPage);
+  }else{
+    const sStart=sutraSessionStart!==null?sutraSessionStart:endPage;
+    realStart=Math.min(sStart,endPage);
+    realEnd=Math.max(sStart,endPage);
+  }
+  const pagesRead=realEnd-realStart+1;
+  const scrollFrom=sutraPageToScroll(vi,realStart);
+  const scrollTo=sutraPageToScroll(vi,realEnd);
+  const rec={
+    date:todayISO(),
+    volume:vi, volumeName:v.name,
+    assembly:sutraCfg.assembly,
+    startPage:realStart, endPage:realEnd, pagesRead,
+    scrollFrom, scrollTo,
+    time:(()=>{const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');})()
+  };
+  sutraHist=sutraHist.filter(h=>h.date!==rec.date);
+  sutraHist.unshift(rec);
+  if(sutraHist.length>365)sutraHist.length=365;
+  saveSutraHist();
+  sutraSessionStart=endPage;
+  sutraSt('已記錄今日誦經 '+pagesRead+' 頁（卷 '+scrollFrom+(scrollFrom!==scrollTo?'–'+scrollTo:'')+'）','ok');
+  buildSutra();
+}
+
+function sutraResetToday(){
+  if(!confirm('清除今日誦經紀錄？（不影響書籤頁）'))return;
+  const t=todayISO();
+  sutraHist=sutraHist.filter(h=>h.date!==t);
+  saveSutraHist();
+  sutraSessionStart=sutraCfg.currentPage;
+  buildSutra();
 }
 
 /* ── Local fallback storage ── */
