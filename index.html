@@ -898,6 +898,29 @@ function loadDraft(){try{return localStorage.getItem('dn_dr')||'';}catch(e){retu
 function saveDraft(t){try{localStorage.setItem('dn_dr',t);}catch(e){}}
 function clearDraft(){try{localStorage.removeItem('dn_dr');}catch(e){}}
 
+/* ── Remote data cache (per user) ── */
+function cacheKey(){return 'dn_cache_'+(userName||'');}
+function ensuredKey(){return 'dn_ensured_'+(userName||'');}
+function loadCache(){
+  if(!userName)return null;
+  try{const s=localStorage.getItem(cacheKey());return s?JSON.parse(s):null;}catch(e){return null;}
+}
+function saveCache(){
+  if(!userName)return;
+  try{localStorage.setItem(cacheKey(),JSON.stringify({stats,entries,todayEntry,t:Date.now()}));}catch(e){}
+}
+function applyCache(c){
+  if(!c)return false;
+  stats=c.stats||null;
+  entries=c.entries||[];
+  todayEntry=c.todayEntry||null;
+  if(todayEntry&&todayEntry.didHearing)didOpenHearing=true;
+  if(todayEntry&&todayEntry.didFaith)didOpenFaith=true;
+  return true;
+}
+function isUserEnsured(){try{return localStorage.getItem(ensuredKey())==='1';}catch(e){return false;}}
+function markUserEnsured(){try{localStorage.setItem(ensuredKey(),'1');}catch(e){}}
+
 /* ── Build page ── */
 const app=document.getElementById('app');
 
@@ -1026,13 +1049,20 @@ function bind(){
     const n=uInput.value.trim();
     if(!n){showSt('請輸入名字','err');return;}
     userName=n; saveUser(n);
-    uBtn.disabled=true; uBtn.textContent='載入中…';
-    if(apiOk()){
-      const r=await api({action:'ensureUser',userName:n});
-      if(!r.ok){showSt('建立使用者失敗：'+r.error,'err');uBtn.disabled=false;uBtn.textContent='切換';return;}
-    }
-    await loadRemoteData();
+    // Render from cache immediately (or empty) so UI flips instantly.
+    didOpenHearing=false; didOpenFaith=false;
+    if(!applyCache(loadCache())){stats=null;entries=[];todayEntry=null;}
     buildPage();
+    if(apiOk()){
+      (async()=>{
+        if(!isUserEnsured()){
+          const r=await api({action:'ensureUser',userName:n});
+          if(!r.ok){showSt('建立使用者失敗：'+r.error,'err');return;}
+          markUserEnsured();
+        }
+        refreshInBackground();
+      })();
+    }
   };
 
   // Journal
@@ -2242,24 +2272,29 @@ function loadLocalData(){
   }catch(e){entries=[];stats=null;}
 }
 
-/* ── Remote data loading ── */
+/* ── Remote data loading (single round-trip via getHomeData) ── */
 async function loadRemoteData(){
-  if(!apiOk()||!userName)return;
+  if(!apiOk()||!userName)return false;
   try{
-    const [sRes,eRes,tRes]=await Promise.all([
-      api({action:'getStats',userName}),
-      api({action:'getEntries',userName,limit:180}),
-      api({action:'getTodayEntry',userName})
-    ]);
-    if(sRes.ok)stats=sRes.data;
-    if(eRes.ok)entries=eRes.data.entries||[];
-    if(tRes.ok&&tRes.data.found){
-      todayEntry=tRes.data;
-      // Restore open states
+    const r=await api({action:'getHomeData',userName,limit:180});
+    if(!r.ok)return false;
+    const d=r.data||{};
+    if(d.stats)stats=d.stats;
+    entries=(d.entries)||[];
+    if(d.today&&d.today.found){
+      todayEntry=d.today;
       if(todayEntry.didHearing)didOpenHearing=true;
       if(todayEntry.didFaith)didOpenFaith=true;
     }else{todayEntry=null;}
-  }catch(e){console.warn('remote load failed',e);}
+    saveCache();
+    return true;
+  }catch(e){console.warn('remote load failed',e);return false;}
+}
+
+async function refreshInBackground(){
+  const ok=await loadRemoteData();
+  if(ok&&currentTab==='home')buildPage();
+  else if(ok&&currentTab==='records')buildRecords();
 }
 
 /* ── Init ── */
@@ -2273,16 +2308,26 @@ async function init(){
     fIdx=passData.faithGratitude.indexOf(fP);
 
     userName=loadUser();
+    bindTabs();
 
     if(apiOk()&&userName){
-      await api({action:'ensureUser',userName});
-      await loadRemoteData();
+      // 1) Render immediately from cache (or empty) so the UI is visible right away.
+      const hadCache=applyCache(loadCache());
+      if(!hadCache)loadLocalData();
+      buildPage();
+
+      // 2) ensureUser only on first sync per user, then refresh in background.
+      (async()=>{
+        if(!isUserEnsured()){
+          const er=await api({action:'ensureUser',userName});
+          if(er.ok)markUserEnsured();
+        }
+        refreshInBackground();
+      })();
     } else {
       loadLocalData();
+      buildPage();
     }
-
-    bindTabs();
-    buildPage();
   }catch(err){
     app.innerHTML='<div class="loading" style="color:#8b3a3a;">載入失敗：'+esc(String(err))+'</div>';
   }

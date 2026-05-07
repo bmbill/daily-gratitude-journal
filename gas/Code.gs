@@ -44,6 +44,7 @@ function doPost(e) {
       case "getTodayEntry":return out_(getTodayEntry_(body.userName));
       case "getEntries":   return out_(getEntries_(body.userName, body.limit));
       case "getStats":     return out_(getStats_(body.userName));
+      case "getHomeData":  return out_(getHomeData_(body.userName, body.limit));
       default:             return out_({ ok: false, error: "unknown action: " + body.action });
     }
   } catch (err) {
@@ -316,5 +317,111 @@ function emptyStats_() {
     totalEntries: 0, uniqueDays: 0, totalChars: 0, avgChars: 0,
     hearingCount: 0, faithCount: 0, journalCount: 0,
     streak: 0, weekDays: 0, monthDays: 0, recentDays: 0
+  };
+}
+
+/* ── Home data (today + entries + stats in one sheet read) ── */
+
+function getHomeData_(userName, limit) {
+  var name = sanitizeName_(userName);
+  var sheet = ss_().getSheetByName(name);
+  var lim = limit || 30;
+  if (!sheet) {
+    return { ok: true, data: { today: { found: false }, entries: [], stats: emptyStats_() } };
+  }
+  var lastRow = sheet.getLastRow();
+  if (lastRow < DATA_START) {
+    return { ok: true, data: { today: { found: false }, entries: [], stats: emptyStats_() } };
+  }
+
+  var data = sheet.getRange(DATA_START, 1, lastRow - DATA_START + 1, HEADERS.length).getValues();
+
+  var todayStr = Utilities.formatDate(new Date(), TZ, "yyyy/MM/dd");
+  var today = { found: false };
+  var entries = [];
+
+  for (var i = data.length - 1; i >= 0; i--) {
+    var r = data[i];
+    var dateVal = String(r[0]).trim();
+    if (!dateVal) continue;
+    var rec = {
+      date: dateVal,
+      time: String(r[1]).trim(),
+      didHearing: String(r[2]).trim() === "V",
+      didFaith: String(r[3]).trim() === "V",
+      didJournal: String(r[4]).trim() === "V",
+      charCount: parseInt(r[5], 10) || 0,
+      hearingId: String(r[6]).trim(),
+      faithId: String(r[7]).trim(),
+      hearingQuote: String(r[8] || "").trim(),
+      faithQuote: String(r[9] || "").trim(),
+      text: String(r[10] || "").trim()
+    };
+    if (!today.found && dateVal === todayStr) {
+      today = {
+        found: true,
+        date: rec.date, time: rec.time,
+        didHearing: rec.didHearing, didFaith: rec.didFaith, didJournal: rec.didJournal,
+        charCount: rec.charCount,
+        hearingId: rec.hearingId, faithId: rec.faithId,
+        hearingQuote: rec.hearingQuote, faithQuote: rec.faithQuote,
+        text: rec.text
+      };
+    }
+    if (entries.length < lim) entries.push(rec);
+  }
+
+  var stats = computeStats_(data);
+  return { ok: true, data: { today: today, entries: entries, stats: stats } };
+}
+
+function computeStats_(data) {
+  var totalEntries = 0, totalChars = 0;
+  var hearingCount = 0, faithCount = 0, journalCount = 0;
+  var dateSet = {}, recentDates = {}, weekDates = {}, monthDates = {};
+
+  var now = new Date();
+  var todayStr = Utilities.formatDate(now, TZ, "yyyy/MM/dd");
+  var thirtyStr = Utilities.formatDate(new Date(now.getTime() - 30 * 86400000), TZ, "yyyy/MM/dd");
+  var dayOfWeek = now.getDay();
+  var mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  var mondayStr = Utilities.formatDate(new Date(now.getTime() - mondayOffset * 86400000), TZ, "yyyy/MM/dd");
+  var monthStart = Utilities.formatDate(new Date(now.getFullYear(), now.getMonth(), 1), TZ, "yyyy/MM/dd");
+
+  for (var i = 0; i < data.length; i++) {
+    var dateVal = String(data[i][0]).trim();
+    if (!dateVal) continue;
+    totalEntries++;
+    totalChars += parseInt(data[i][5], 10) || 0;
+    if (String(data[i][2]).trim() === "V") hearingCount++;
+    if (String(data[i][3]).trim() === "V") faithCount++;
+    if (String(data[i][4]).trim() === "V") journalCount++;
+    dateSet[dateVal] = true;
+    if (dateVal >= thirtyStr)  recentDates[dateVal] = true;
+    if (dateVal >= mondayStr)  weekDates[dateVal] = true;
+    if (dateVal >= monthStart) monthDates[dateVal] = true;
+  }
+
+  var uniqueDays = Object.keys(dateSet).length;
+  var streak = 0;
+  var checkDate = dateSet[todayStr] ? new Date(now.getTime()) : new Date(now.getTime() - 86400000);
+  for (var s = 0; s < 365; s++) {
+    var ds = Utilities.formatDate(checkDate, TZ, "yyyy/MM/dd");
+    if (dateSet[ds]) { streak++; checkDate = new Date(checkDate.getTime() - 86400000); }
+    else break;
+  }
+
+  return {
+    totalEntries: totalEntries,
+    uniqueDays: uniqueDays,
+    totalChars: totalChars,
+    avgChars: uniqueDays > 0 ? Math.round(totalChars / uniqueDays) : 0,
+    hearingCount: hearingCount,
+    faithCount: faithCount,
+    journalCount: journalCount,
+    streak: streak,
+    weekDays: Object.keys(weekDates).length,
+    monthDays: Object.keys(monthDates).length,
+    recentDays: Object.keys(recentDates).length
   };
 }
