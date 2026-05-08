@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#5b4a3f" />
   <title>修信念恩日記</title>
   <link rel="manifest" href="manifest.json" />
@@ -14,12 +14,14 @@
       --border:#e0d6c8; --shadow:rgba(90,70,40,.08); --r:12px;
       --green:#5a8a5e; --green-bg:#e8f5e9;
     }
-    html { font-size:16px; -webkit-text-size-adjust:100%; }
+    html { font-size:16px; -webkit-text-size-adjust:100%; touch-action:manipulation; }
     body {
       font-family:"Noto Sans TC","Source Han Sans TC",system-ui,sans-serif;
       background:var(--bg); color:var(--text); line-height:1.7;
       min-height:100dvh; -webkit-font-smoothing:antialiased;
+      touch-action:manipulation;
     }
+    button, .btn, .btn-sm, .tab-btn { touch-action:manipulation; }
     #app { max-width:640px; margin:0 auto; padding:16px 16px env(safe-area-inset-bottom,16px); }
 
     /* Header */
