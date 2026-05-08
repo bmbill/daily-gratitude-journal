@@ -1435,7 +1435,8 @@ function showDetail(e){
     const v=sutraVol(s.volume);
     const vn=v?v.name:('冊'+s.volume);
     const sc=s.scrollFrom===s.scrollTo?('卷 '+s.scrollFrom):('卷 '+s.scrollFrom+'–'+s.scrollTo);
-    pInfo.push('<strong>誦經：</strong>第 '+(s.assembly||2)+' 會 · '+esc(vn)+' · 第 '+s.startPage+'–'+s.endPage+' 頁（'+s.pagesRead+' 頁，'+sc+'）');
+    const pg=s.startPage===s.endPage?('第 '+s.startPage+' 頁'):('第 '+s.startPage+'–'+s.endPage+' 頁');
+    pInfo.push('<strong>誦經：</strong>第 '+(s.assembly||2)+' 會 · '+esc(vn)+' · '+pg+'（'+s.pagesRead+' 頁，'+sc+'）');
   }
 
   area.innerHTML=`<div class="det-card">
@@ -2421,7 +2422,7 @@ function buildSutra(){
             const vn=sutraVol(h.volume);
             return `<div class="sutra-hist-row">
               <span class="h-date">${esc(h.date)}</span>
-              <span class="h-info">${vn?esc(vn.name):'冊'+h.volume} · 第${h.startPage}–${h.endPage}頁 · 卷${h.scrollFrom}${h.scrollFrom!==h.scrollTo?'–'+h.scrollTo:''}</span>
+              <span class="h-info">${vn?esc(vn.name):'冊'+h.volume} · 第${h.startPage}${h.startPage!==h.endPage?'–'+h.endPage:''}頁 · 卷${h.scrollFrom}${h.scrollFrom!==h.scrollTo?'–'+h.scrollTo:''}</span>
               <span class="h-pages">+${h.pagesRead}頁</span>
             </div>`;
           }).join('')}
