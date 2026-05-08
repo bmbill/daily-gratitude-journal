@@ -589,6 +589,97 @@
       font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums;
     }
 
+    /* ── Settings 與 Modal ── */
+    .hd { position:relative; }
+    .hd-gear {
+      position:absolute; right:0; top:18px;
+      background:transparent; border:none; padding:6px; cursor:pointer;
+      color:var(--muted); border-radius:8px; line-height:0;
+      transition:background .2s, color .2s;
+    }
+    .hd-gear:hover { background:var(--card); color:var(--accent); }
+    .hd-gear svg { width:22px; height:22px; fill:currentColor; }
+
+    .settings-page { padding:8px 0 24px; }
+    .settings-page .st-back {
+      background:transparent; border:none; color:var(--muted); cursor:pointer;
+      font-size:.9rem; padding:4px 8px; margin-bottom:8px; font-family:inherit;
+    }
+    .settings-page .st-back:hover { color:var(--accent); }
+    .settings-page h2 {
+      font-family:"Noto Serif TC",serif; font-size:1.3rem; font-weight:700;
+      color:var(--accent); margin-bottom:18px; text-align:center;
+    }
+    .st-card {
+      background:var(--card); border-radius:var(--r); padding:16px;
+      box-shadow:0 1px 6px var(--shadow); margin-bottom:14px;
+    }
+    .st-label { font-size:.78rem; color:var(--muted); margin-bottom:6px; }
+    .st-name { font-size:1.15rem; font-weight:600; color:var(--text); }
+    .st-code-row { display:flex; align-items:center; gap:10px; margin-top:4px; }
+    .st-code {
+      font-family:"SF Mono",Menlo,Consolas,monospace; font-size:1.6rem;
+      font-weight:700; color:var(--accent); letter-spacing:.15em;
+      background:var(--accent-bg); padding:8px 16px; border-radius:8px;
+    }
+    .st-full { font-size:.82rem; color:var(--muted); margin-top:8px; word-break:break-all; }
+    .st-hint {
+      font-size:.78rem; color:var(--muted); margin-top:10px; line-height:1.6;
+      padding:8px 10px; background:var(--bg); border-radius:8px;
+    }
+    .st-warn {
+      font-size:.85rem; color:#a05a3a; line-height:1.6;
+      padding:10px 12px; background:#fdf3ec; border-radius:8px;
+      border-left:3px solid #d28a5a; margin-bottom:12px;
+    }
+    .st-btn {
+      display:block; width:100%; padding:11px 14px; border:none; border-radius:8px;
+      font-size:.92rem; font-weight:600; cursor:pointer; font-family:inherit;
+      background:var(--accent); color:#fff; transition:background .2s;
+    }
+    .st-btn:hover { background:#7a5e38; }
+    .st-btn.ghost {
+      background:transparent; color:var(--accent); border:1px solid var(--border);
+    }
+    .st-btn.ghost:hover { background:var(--accent-bg); }
+    .st-btn.danger { background:#b8554a; }
+    .st-btn.danger:hover { background:#9d4136; }
+    .st-btn-row { display:flex; gap:8px; margin-top:6px; }
+    .st-btn-row .st-btn { margin-top:0; }
+    .st-btn + .st-btn { margin-top:8px; }
+
+    /* Modal */
+    .modal-bk {
+      position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9999;
+      display:flex; align-items:center; justify-content:center; padding:16px;
+    }
+    .modal {
+      background:var(--card); border-radius:var(--r); max-width:420px; width:100%;
+      padding:22px 20px; box-shadow:0 8px 30px rgba(0,0,0,.25);
+    }
+    .modal h3 {
+      font-family:"Noto Serif TC",serif; font-size:1.15rem; color:var(--accent);
+      margin-bottom:12px; text-align:center;
+    }
+    .modal .m-body { font-size:.9rem; line-height:1.7; color:var(--text); }
+    .modal .m-code-show {
+      text-align:center; margin:14px 0;
+    }
+    .modal .m-code-show .st-code { display:inline-block; font-size:1.8rem; }
+    .modal .m-input {
+      display:block; width:100%; padding:10px 12px; border:1px solid var(--border);
+      border-radius:8px; font-size:.95rem; margin-bottom:10px; font-family:inherit;
+      color:var(--text); background:var(--bg); outline:none; box-sizing:border-box;
+    }
+    .modal .m-input:focus { border-color:var(--accent); }
+    .modal .m-input.code-input {
+      font-family:"SF Mono",Menlo,Consolas,monospace; letter-spacing:.15em;
+      text-transform:uppercase;
+    }
+    .modal .m-actions { display:flex; gap:8px; margin-top:14px; }
+    .modal .m-actions .st-btn { margin-top:0; }
+    .modal .m-err { color:#b8554a; font-size:.85rem; margin-top:6px; min-height:1em; }
+
     @media(max-width:400px) {
       #app { padding:12px; padding-bottom:70px; }
       .stats-grid { grid-template-columns:repeat(2,1fr); }
@@ -887,22 +978,28 @@ async function api(body){
 let passData=null, hP=null, fP=null;
 let hIdx=0, fIdx=0;   // current passage index within each array
 let userName='';
+let userCode=''; // 4-char hex 短碼，舊版帳號為空字串
 let stats=null, entries=[];
 let didOpenHearing=false, didPlayHearing=false;
 let didOpenFaith=false, didPlayFaith=false;
-let currentTab='home'; // 'home' or 'records'
+let currentTab='home'; // 'home' | 'records' | 'sutra' | 'farm' | 'settings'
 let todayEntry=null; // loaded from server for editing
 let calMonth=null; // Date object for calendar navigation
 
 function loadUser(){try{return localStorage.getItem('dn_user')||'';}catch(e){return '';}}
 function saveUser(n){try{localStorage.setItem('dn_user',n);}catch(e){}}
+function loadUserCode(){try{return localStorage.getItem('dn_user_code')||'';}catch(e){return '';}}
+function saveUserCode(c){try{if(c)localStorage.setItem('dn_user_code',c);else localStorage.removeItem('dn_user_code');}catch(e){}}
 function loadDraft(){try{return localStorage.getItem('dn_dr')||'';}catch(e){return '';}}
 function saveDraft(t){try{localStorage.setItem('dn_dr',t);}catch(e){}}
 function clearDraft(){try{localStorage.removeItem('dn_dr');}catch(e){}}
 
+/* ── 身分組合鍵：name + code（避免不同帳號共用快取／ensured 旗標） ── */
+function userKey(){return (userName||'')+(userCode?'-'+userCode:'');}
+
 /* ── Remote data cache (per user) ── */
-function cacheKey(){return 'dn_cache_'+(userName||'');}
-function ensuredKey(){return 'dn_ensured_'+(userName||'');}
+function cacheKey(){return 'dn_cache_'+userKey();}
+function ensuredKey(){return 'dn_ensured_'+userKey();}
 function loadCache(){
   if(!userName)return null;
   try{const s=localStorage.getItem(cacheKey());return s?JSON.parse(s):null;}catch(e){return null;}
@@ -933,7 +1030,13 @@ async function buildPage(){
   const fd=fDay();
 
   app.innerHTML=`
-    <header class="hd"><h1>修信念恩日記</h1><div class="date">${todayFmt()}</div></header>
+    <header class="hd">
+      <h1>修信念恩日記</h1>
+      <div class="date">${todayFmt()}</div>
+      <button class="hd-gear" id="hdGear" title="設定" aria-label="設定">
+        <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+      </button>
+    </header>
 
     ${!apiOk()?'<div class="config-note">離線模式 — 如需同步到 Google 試算表，請在 <code>index.html</code> 頂部填入 <code>GAS_URL</code> 和 <code>API_KEY</code></div>':''}
 
@@ -1036,6 +1139,10 @@ function passHTML(p,id){
 
 /* ── Event binding ── */
 function bind(){
+  // Settings gear
+  const gear=document.getElementById('hdGear');
+  if(gear)gear.onclick=()=>switchTab('settings');
+
   // Toggle sections
   bindTog('H','hearing');
   bindTog('F','faith');
@@ -1050,8 +1157,10 @@ function bind(){
   uBtn.onclick=async()=>{
     const n=uInput.value.trim();
     if(!n){showSt('請輸入名字','err');return;}
+    // 從使用者列輸入 = 建立全新帳號（後端會自動產生短碼，避免同名衝突）
+    // 要切到既有帳號或登入，請走設定頁
     userName=n; saveUser(n);
-    // Render from cache immediately (or empty) so UI flips instantly.
+    userCode=''; saveUserCode('');
     didOpenHearing=false; didOpenFaith=false;
     if(!applyCache(loadCache())){stats=null;entries=[];todayEntry=null;}
     buildPage();
@@ -1060,6 +1169,10 @@ function bind(){
         if(!isUserEnsured()){
           const r=await api({action:'ensureUser',userName:n});
           if(!r.ok){showSt('建立使用者失敗：'+r.error,'err');return;}
+          if(r.data&&r.data.code){
+            userCode=r.data.code; saveUserCode(userCode);
+            if(r.data.created)showCodeModal(userCode,n);
+          }
           markUserEnsured();
         }
         refreshInBackground();
@@ -1080,7 +1193,7 @@ function bind(){
 
     if(apiOk()){
       const r=await api({
-        action:'saveEntry', userName,
+        action:'saveEntry', userName, code:userCode,
         didHearing:didOpenHearing, didFaith:didOpenFaith,
         didJournal:text.length>0,
         journalText:text,
@@ -1340,6 +1453,7 @@ function showDetail(e){
 
 function switchTab(tab){
   currentTab=tab;
+  // settings 不在 tab bar 上，所以四個 tab 都不會 active
   document.getElementById('tabHome').classList.toggle('active',tab==='home');
   document.getElementById('tabRec').classList.toggle('active',tab==='records');
   document.getElementById('tabFarm').classList.toggle('active',tab==='farm');
@@ -1348,6 +1462,7 @@ function switchTab(tab){
   else if(tab==='records')buildRecords();
   else if(tab==='farm')buildFarm();
   else if(tab==='sutra'){sutraRefreshAvail().then(buildSutra);}
+  else if(tab==='settings')buildSettings();
 }
 
 function bindTabs(){
@@ -1355,6 +1470,211 @@ function bindTabs(){
   document.getElementById('tabRec').onclick=()=>switchTab('records');
   document.getElementById('tabFarm').onclick=()=>switchTab('farm');
   document.getElementById('tabSutra').onclick=()=>switchTab('sutra');
+}
+
+/* ══════════════════════════════════════════════
+   設定頁（帳號 / 識別碼 / 換裝置登入）
+   ══════════════════════════════════════════════ */
+
+async function copyText(text){
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(text); return true;
+    }
+  }catch(e){}
+  // Fallback
+  try{
+    const ta=document.createElement('textarea');
+    ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    const ok=document.execCommand('copy');
+    document.body.removeChild(ta); return ok;
+  }catch(e){return false;}
+}
+
+function showModal(html){
+  const bk=document.createElement('div');
+  bk.className='modal-bk';
+  bk.innerHTML='<div class="modal" role="dialog" aria-modal="true">'+html+'</div>';
+  document.body.appendChild(bk);
+  const close=()=>{if(bk.parentNode)bk.parentNode.removeChild(bk);};
+  bk.addEventListener('click',(e)=>{if(e.target===bk)close();});
+  return {el:bk.querySelector('.modal'), close};
+}
+
+function showCodeModal(code, name){
+  const m=showModal(`
+    <h3>已建立帳號</h3>
+    <div class="m-body">
+      <p>「<b>${esc(name)}</b>」的識別碼是：</p>
+      <div class="m-code-show"><span class="st-code">${esc(code)}</span></div>
+      <div class="st-warn">
+        ⚠️ 換裝置時需要這組識別碼才能取回日記，<b>請務必截圖或抄下保存</b>。<br>
+        之後可在「設定」頁查看或複製。
+      </div>
+    </div>
+    <div class="m-actions">
+      <button class="st-btn ghost" id="codeCopy">複製識別碼</button>
+      <button class="st-btn" id="codeOk">我已記下</button>
+    </div>
+  `);
+  m.el.querySelector('#codeCopy').onclick=async()=>{
+    const ok=await copyText(code);
+    showSt(ok?'已複製識別碼':'複製失敗，請手動抄下',ok?'ok':'err');
+  };
+  m.el.querySelector('#codeOk').onclick=m.close;
+}
+
+function showLoginModal(){
+  const m=showModal(`
+    <h3>從其他裝置登入</h3>
+    <div class="m-body">
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:10px;">
+        請輸入原本的名字與識別碼。識別碼為 4 碼大寫英數字（舊版帳號可留空）。
+      </p>
+      <input class="m-input" id="liName" type="text" placeholder="名字" />
+      <input class="m-input code-input" id="liCode" type="text" placeholder="識別碼（例：A3F2）" maxlength="8" />
+      <div class="m-err" id="liErr"></div>
+    </div>
+    <div class="m-actions">
+      <button class="st-btn ghost" id="liCancel">取消</button>
+      <button class="st-btn" id="liOk">登入</button>
+    </div>
+  `);
+  const nameEl=m.el.querySelector('#liName');
+  const codeEl=m.el.querySelector('#liCode');
+  const errEl=m.el.querySelector('#liErr');
+  setTimeout(()=>nameEl.focus(),50);
+  m.el.querySelector('#liCancel').onclick=m.close;
+  m.el.querySelector('#liOk').onclick=async()=>{
+    const n=nameEl.value.trim();
+    const c=codeEl.value.trim().toUpperCase();
+    if(!n){errEl.textContent='請輸入名字';return;}
+    if(c&&!/^[0-9A-F]{3,8}$/.test(c)){errEl.textContent='識別碼格式錯誤（4 碼大寫英數字）';return;}
+    errEl.textContent='驗證中…';
+    if(!apiOk()){errEl.textContent='離線模式無法登入';return;}
+    const r=await api({action:'loginUser',userName:n,code:c});
+    if(!r.ok){errEl.textContent='登入失敗：'+r.error;return;}
+    if(!r.data||!r.data.found){errEl.textContent='找不到此帳號，請確認名字與識別碼';return;}
+    // 切到該帳號
+    userName=r.data.userName||n;
+    userCode=r.data.code||'';
+    saveUser(userName); saveUserCode(userCode);
+    markUserEnsured();
+    // 清空目前畫面狀態並重抓資料
+    didOpenHearing=false; didOpenFaith=false;
+    if(!applyCache(loadCache())){stats=null;entries=[];todayEntry=null;}
+    m.close();
+    showSt('已登入「'+userName+'」','ok');
+    await loadRemoteData();
+    switchTab('home');
+  };
+}
+
+function showSwitchUserModal(){
+  const m=showModal(`
+    <h3>切換使用者</h3>
+    <div class="m-body">
+      <p>切換後此裝置會回到未設定狀態，下次需重新輸入名字（建立新帳號）或從設定頁登入既有帳號。</p>
+      <p style="color:var(--muted);font-size:.82rem;margin-top:8px;">
+        雲端資料不會被刪除，只要記得名字＋識別碼隨時可以登入回來。
+      </p>
+    </div>
+    <div class="m-actions">
+      <button class="st-btn ghost" id="swCancel">取消</button>
+      <button class="st-btn danger" id="swOk">確定切換</button>
+    </div>
+  `);
+  m.el.querySelector('#swCancel').onclick=m.close;
+  m.el.querySelector('#swOk').onclick=()=>{
+    try{
+      localStorage.removeItem('dn_user');
+      localStorage.removeItem('dn_user_code');
+    }catch(e){}
+    m.close();
+    location.reload();
+  };
+}
+
+async function doUpgradeLegacy(){
+  if(!apiOk()){showSt('離線模式無法升級','err');return;}
+  if(!userName){showSt('未設定使用者','err');return;}
+  const r=await api({action:'upgradeLegacyUser',userName});
+  if(!r.ok){showSt('升級失敗：'+r.error,'err');return;}
+  // 升級後 sheet 名變成 name-code，舊的 cache key 會失效，清掉
+  try{localStorage.removeItem('dn_cache_'+userName);}catch(e){}
+  try{localStorage.removeItem('dn_ensured_'+userName);}catch(e){}
+  userCode=r.data.code; saveUserCode(userCode);
+  markUserEnsured();
+  showCodeModal(userCode, userName);
+  buildSettings();
+}
+
+function buildSettings(){
+  aStop();
+  const isLegacy=!userCode;
+  const fullName=userCode?(userName+'-'+userCode):userName;
+  app.innerHTML=`
+    <div class="settings-page">
+      <button class="st-back" id="stBack">← 返回</button>
+      <h2>帳號設定</h2>
+
+      <div class="st-card">
+        <div class="st-label">目前使用者</div>
+        <div class="st-name">${esc(userName||'（未設定）')}</div>
+      </div>
+
+      ${isLegacy?`
+      <div class="st-card">
+        <div class="st-warn">
+          ⚠️ 你的帳號是<b>舊版</b>（無識別碼）。<br>
+          建議升級以避免同名衝突，並能在更換裝置時可靠地取回資料。
+        </div>
+        <button class="st-btn" id="stUpgrade">升級並產生識別碼</button>
+      </div>
+      `:`
+      <div class="st-card">
+        <div class="st-label">識別碼（換裝置時需要）</div>
+        <div class="st-code-row">
+          <span class="st-code">${esc(userCode)}</span>
+        </div>
+        <div class="st-full">完整名稱：<b>${esc(fullName)}</b></div>
+        <div class="st-btn-row" style="margin-top:12px;">
+          <button class="st-btn ghost" id="stCopyCode">複製識別碼</button>
+          <button class="st-btn ghost" id="stCopyFull">複製完整名稱</button>
+        </div>
+        <div class="st-hint">
+          換裝置時，請輸入「名字＋識別碼」即可取回日記。建議現在就截圖保存。
+        </div>
+      </div>
+      `}
+
+      <div class="st-card">
+        <div class="st-label" style="margin-bottom:10px;">帳號操作</div>
+        <button class="st-btn ghost" id="stLogin">從其他裝置登入</button>
+        <button class="st-btn danger" id="stSwitch">切換使用者</button>
+      </div>
+
+      <div id="stA"></div>
+    </div>
+  `;
+  document.getElementById('tabBar').style.display='flex';
+
+  document.getElementById('stBack').onclick=()=>switchTab('home');
+  const upBtn=document.getElementById('stUpgrade');
+  if(upBtn)upBtn.onclick=doUpgradeLegacy;
+  const ccBtn=document.getElementById('stCopyCode');
+  if(ccBtn)ccBtn.onclick=async()=>{
+    const ok=await copyText(userCode);
+    showSt(ok?'已複製識別碼':'複製失敗',ok?'ok':'err');
+  };
+  const cfBtn=document.getElementById('stCopyFull');
+  if(cfBtn)cfBtn.onclick=async()=>{
+    const ok=await copyText(fullName);
+    showSt(ok?'已複製完整名稱':'複製失敗',ok?'ok':'err');
+  };
+  document.getElementById('stLogin').onclick=showLoginModal;
+  document.getElementById('stSwitch').onclick=showSwitchUserModal;
 }
 
 /* ══════════════════════════════════════════════
@@ -2278,7 +2598,7 @@ function loadLocalData(){
 async function loadRemoteData(){
   if(!apiOk()||!userName)return false;
   try{
-    const r=await api({action:'getHomeData',userName,limit:180});
+    const r=await api({action:'getHomeData',userName,code:userCode,limit:180});
     if(!r.ok)return false;
     const d=r.data||{};
     if(d.stats)stats=d.stats;
@@ -2310,6 +2630,7 @@ async function init(){
     fIdx=passData.faithGratitude.indexOf(fP);
 
     userName=loadUser();
+    userCode=loadUserCode();
     bindTabs();
 
     if(apiOk()&&userName){
@@ -2321,8 +2642,13 @@ async function init(){
       // 2) ensureUser only on first sync per user, then refresh in background.
       (async()=>{
         if(!isUserEnsured()){
-          const er=await api({action:'ensureUser',userName});
-          if(er.ok)markUserEnsured();
+          const er=await api({action:'ensureUser',userName,code:userCode});
+          if(er.ok){
+            if(er.data&&er.data.code&&er.data.code!==userCode){
+              userCode=er.data.code; saveUserCode(userCode);
+            }
+            markUserEnsured();
+          }
         }
         refreshInBackground();
       })();

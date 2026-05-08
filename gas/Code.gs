@@ -38,14 +38,16 @@ function doPost(e) {
     if (!verifyKey_(body)) return out_({ ok: false, error: "unauthorized" });
 
     switch (body.action) {
-      case "listUsers":    return out_({ ok: true, data: { users: listUsers_() } });
-      case "ensureUser":   return out_(ensureUser_(body.userName));
-      case "saveEntry":    return out_(saveEntry_(body));
-      case "getTodayEntry":return out_(getTodayEntry_(body.userName));
-      case "getEntries":   return out_(getEntries_(body.userName, body.limit));
-      case "getStats":     return out_(getStats_(body.userName));
-      case "getHomeData":  return out_(getHomeData_(body.userName, body.limit));
-      default:             return out_({ ok: false, error: "unknown action: " + body.action });
+      case "listUsers":         return out_({ ok: true, data: { users: listUsers_() } });
+      case "ensureUser":        return out_(ensureUser_(body.userName, body.code));
+      case "loginUser":         return out_(loginUser_(body.userName, body.code));
+      case "upgradeLegacyUser": return out_(upgradeLegacyUser_(body.userName));
+      case "saveEntry":         return out_(saveEntry_(body));
+      case "getTodayEntry":     return out_(getTodayEntry_(body.userName, body.code));
+      case "getEntries":        return out_(getEntries_(body.userName, body.code, body.limit));
+      case "getStats":          return out_(getStats_(body.userName, body.code));
+      case "getHomeData":       return out_(getHomeData_(body.userName, body.code, body.limit));
+      default:                  return out_({ ok: false, error: "unknown action: " + body.action });
     }
   } catch (err) {
     return out_({ ok: false, error: String(err.message || err) });
@@ -68,15 +70,25 @@ function ss_() {
 }
 
 /* ── Users (= Sheet Tabs) ── */
+/*
+ * 工作表命名規則：
+ *   新版：「{name}-{code}」，code 為 4 碼大寫 hex（例：小明-A3F2）
+ *   舊版（legacy）：「{name}」，無短碼（為相容既有使用者保留）
+ *   系統表：以「_」開頭（不顯示給使用者）
+ */
+
+var CODE_LEN = 4;
 
 function listUsers_() {
   var sheets = ss_().getSheets();
-  var names = [];
+  var users = [];
   for (var i = 0; i < sheets.length; i++) {
     var n = sheets[i].getName();
-    if (n.indexOf("_") !== 0) names.push(n);   // skip _prefixed system sheets
+    if (n.indexOf("_") === 0) continue;
+    var p = parseSheetName_(n);
+    users.push({ name: p.name, code: p.code, full: n, isLegacy: !p.code });
   }
-  return names;
+  return users;
 }
 
 function sanitizeName_(name) {
@@ -88,35 +100,118 @@ function sanitizeName_(name) {
   return s;
 }
 
-function ensureUser_(userName) {
-  var name = sanitizeName_(userName);
-  var sheet = ss_().getSheetByName(name);
-  if (sheet) return { ok: true, data: { userName: name, created: false } };
+function sanitizeCode_(code) {
+  if (code == null || code === "") return "";
+  var s = String(code).trim().toUpperCase();
+  if (!/^[0-9A-F]+$/.test(s)) throw new Error("識別碼格式不正確");
+  if (s.length < 3 || s.length > 8) throw new Error("識別碼長度不正確");
+  return s;
+}
 
-  sheet = ss_().insertSheet(name);
-  // Title row
+function genCode_() {
+  // 4 hex chars, uppercase. Avoids ambiguity by using crypto-quality randomness.
+  var hex = Utilities.getUuid().replace(/-/g, "").toUpperCase();
+  return hex.substring(0, CODE_LEN);
+}
+
+function parseSheetName_(sheetName) {
+  // 「name-CODE」→ {name, code}；無 dash 或尾段非 hex → legacy {name, code:""}
+  var m = /^(.+)-([0-9A-F]{3,8})$/.exec(sheetName);
+  if (m) return { name: m[1], code: m[2] };
+  return { name: sheetName, code: "" };
+}
+
+function formatSheetName_(name, code) {
+  return code ? (name + "-" + code) : name;
+}
+
+/**
+ * 找到使用者的工作表。
+ *   - 有 code：只找「name-code」（不會 fallback 到 legacy）
+ *   - 沒 code：找純「name」（legacy 帳號）
+ */
+function findUserSheet_(name, code) {
+  return ss_().getSheetByName(formatSheetName_(name, code));
+}
+
+function initSheet_(sheet, displayName) {
   sheet.getRange(1, 1, 1, HEADERS.length).merge();
-  sheet.getRange(1, 1).setValue(name + " 的修信念恩日記")
+  sheet.getRange(1, 1).setValue(displayName + " 的修信念恩日記")
     .setFontWeight("bold").setHorizontalAlignment("center").setFontSize(12);
-
-  // Header row
   for (var i = 0; i < HEADERS.length; i++) {
     sheet.getRange(HEADER_ROW, i + 1).setValue(HEADERS[i]).setFontWeight("bold");
     sheet.setColumnWidth(i + 1, COL_WIDTHS[i]);
   }
   sheet.getRange(HEADER_ROW, 1, 1, HEADERS.length).setBackground("#f0e6d8");
   sheet.setFrozenRows(HEADER_ROW);
+}
 
+/**
+ * 建立或確認使用者。
+ *   - 有 code：找「name-code」，找不到就建立。用於既有裝置回傳已知短碼。
+ *   - 沒 code：建立全新使用者（自動產生短碼，避免同名衝突）。
+ */
+function ensureUser_(userName, code) {
+  var name = sanitizeName_(userName);
+  var c = sanitizeCode_(code);
+
+  if (c) {
+    var existing = ss_().getSheetByName(formatSheetName_(name, c));
+    if (existing) return { ok: true, data: { userName: name, code: c, created: false } };
+    var s1 = ss_().insertSheet(formatSheetName_(name, c));
+    initSheet_(s1, name);
+    SpreadsheetApp.flush();
+    return { ok: true, data: { userName: name, code: c, created: true } };
+  }
+
+  // 新使用者：自動產生不重複的短碼
+  var newCode = genCode_();
+  for (var tries = 0; tries < 10 && ss_().getSheetByName(formatSheetName_(name, newCode)); tries++) {
+    newCode = genCode_();
+  }
+  var s2 = ss_().insertSheet(formatSheetName_(name, newCode));
+  initSheet_(s2, name);
   SpreadsheetApp.flush();
-  return { ok: true, data: { userName: name, created: true } };
+  return { ok: true, data: { userName: name, code: newCode, created: true } };
+}
+
+/**
+ * 從其他裝置登入。
+ *   - 有 code：驗證「name-code」是否存在
+ *   - 沒 code：驗證 legacy 純「name」是否存在
+ */
+function loginUser_(userName, code) {
+  var name = sanitizeName_(userName);
+  var c = sanitizeCode_(code);
+  var sheet = findUserSheet_(name, c);
+  if (!sheet) return { ok: true, data: { found: false } };
+  return { ok: true, data: { found: true, userName: name, code: c, isLegacy: !c } };
+}
+
+/**
+ * 升級 legacy 帳號：把純「name」的工作表 rename 為「name-code」並回傳新短碼。
+ */
+function upgradeLegacyUser_(userName) {
+  var name = sanitizeName_(userName);
+  var sheet = ss_().getSheetByName(name);
+  if (!sheet) return { ok: false, error: "找不到舊版帳號：" + name };
+
+  var newCode = genCode_();
+  for (var tries = 0; tries < 10 && ss_().getSheetByName(formatSheetName_(name, newCode)); tries++) {
+    newCode = genCode_();
+  }
+  sheet.setName(formatSheetName_(name, newCode));
+  SpreadsheetApp.flush();
+  return { ok: true, data: { userName: name, code: newCode } };
 }
 
 /* ── Save Entry ── */
 
 function saveEntry_(body) {
   var name = sanitizeName_(body.userName);
-  var sheet = ss_().getSheetByName(name);
-  if (!sheet) throw new Error("找不到工作表：" + name);
+  var c = sanitizeCode_(body.code);
+  var sheet = findUserSheet_(name, c);
+  if (!sheet) throw new Error("找不到工作表：" + formatSheetName_(name, c));
 
   var now = new Date();
   var dateStr = Utilities.formatDate(now, TZ, "yyyy/MM/dd");
@@ -160,9 +255,10 @@ function saveEntry_(body) {
 
 /* ── Get Today's Entry ── */
 
-function getTodayEntry_(userName) {
+function getTodayEntry_(userName, code) {
   var name = sanitizeName_(userName);
-  var sheet = ss_().getSheetByName(name);
+  var c = sanitizeCode_(code);
+  var sheet = findUserSheet_(name, c);
   if (!sheet) return { ok: true, data: { found: false } };
 
   var lastRow = sheet.getLastRow();
@@ -194,9 +290,10 @@ function getTodayEntry_(userName) {
 
 /* ── Get Entries ── */
 
-function getEntries_(userName, limit) {
+function getEntries_(userName, code, limit) {
   var name = sanitizeName_(userName);
-  var sheet = ss_().getSheetByName(name);
+  var c = sanitizeCode_(code);
+  var sheet = findUserSheet_(name, c);
   if (!sheet) return { ok: true, data: { entries: [] } };
 
   var lastRow = sheet.getLastRow();
@@ -227,9 +324,10 @@ function getEntries_(userName, limit) {
 
 /* ── Stats ── */
 
-function getStats_(userName) {
+function getStats_(userName, code) {
   var name = sanitizeName_(userName);
-  var sheet = ss_().getSheetByName(name);
+  var c = sanitizeCode_(code);
+  var sheet = findUserSheet_(name, c);
   if (!sheet) return { ok: true, data: emptyStats_() };
 
   var lastRow = sheet.getLastRow();
@@ -322,9 +420,10 @@ function emptyStats_() {
 
 /* ── Home data (today + entries + stats in one sheet read) ── */
 
-function getHomeData_(userName, limit) {
+function getHomeData_(userName, code, limit) {
   var name = sanitizeName_(userName);
-  var sheet = ss_().getSheetByName(name);
+  var c = sanitizeCode_(code);
+  var sheet = findUserSheet_(name, c);
   var lim = limit || 30;
   if (!sheet) {
     return { ok: true, data: { today: { found: false }, entries: [], stats: emptyStats_() } };
