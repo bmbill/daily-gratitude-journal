@@ -91,6 +91,16 @@ function listUsers_() {
   return users;
 }
 
+/**
+ * 把時間欄位讀回的值統一成 "HH:mm" 字串。
+ * Sheet 可能把 "11:29" 自動轉成 Date 物件（epoch 1899-12-30），讀回會是長字串，
+ * 此處統一處理新舊兩種情況。
+ */
+function formatTime_(v) {
+  if (v instanceof Date) return Utilities.formatDate(v, TZ, "HH:mm");
+  return String(v == null ? "" : v).trim();
+}
+
 function sanitizeName_(name) {
   if (!name || typeof name !== "string") throw new Error("invalid userName");
   var s = name.trim();
@@ -246,6 +256,7 @@ function saveEntry_(body) {
                  charCount, hearingId, faithId, hearingQuote, faithQuote, text];
   sheet.getRange(targetRow, 1, 1, rowData.length).setValues([rowData]);
   sheet.getRange(targetRow, 1).setNumberFormat("@");
+  sheet.getRange(targetRow, 2).setNumberFormat("@"); // 時間欄強制文字，避免被 Sheet 自動轉成時間值
   sheet.getRange(targetRow, 6).setNumberFormat("0");
   sheet.getRange(targetRow, 3, 1, 3).setHorizontalAlignment("center");
 
@@ -272,7 +283,7 @@ function getTodayEntry_(userName, code) {
       return { ok: true, data: {
         found: true,
         date: todayStr,
-        time: String(data[i][1]).trim(),
+        time: formatTime_(data[i][1]),
         didHearing: String(data[i][2]).trim() === "V",
         didFaith: String(data[i][3]).trim() === "V",
         didJournal: String(data[i][4]).trim() === "V",
@@ -307,7 +318,7 @@ function getEntries_(userName, code, limit) {
     var r = data[i];
     entries.push({
       date:         String(r[0]).trim(),
-      time:         String(r[1]).trim(),
+      time:         formatTime_(r[1]),
       didHearing:   String(r[2]).trim() === "V",
       didFaith:     String(r[3]).trim() === "V",
       didJournal:   String(r[4]).trim() === "V",
@@ -445,7 +456,7 @@ function getHomeData_(userName, code, limit) {
     if (!dateVal) continue;
     var rec = {
       date: dateVal,
-      time: String(r[1]).trim(),
+      time: formatTime_(r[1]),
       didHearing: String(r[2]).trim() === "V",
       didFaith: String(r[3]).trim() === "V",
       didJournal: String(r[4]).trim() === "V",
