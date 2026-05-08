@@ -144,6 +144,8 @@ function findUserSheet_(name, code) {
   return ss_().getSheetByName(formatSheetName_(name, code));
 }
 
+var DEFAULT_ROWS = 2000;
+
 function initSheet_(sheet, displayName) {
   sheet.getRange(1, 1, 1, HEADERS.length).merge();
   sheet.getRange(1, 1).setValue(displayName + " 的修信念恩日記")
@@ -154,6 +156,17 @@ function initSheet_(sheet, displayName) {
   }
   sheet.getRange(HEADER_ROW, 1, 1, HEADERS.length).setBackground("#f0e6d8");
   sheet.setFrozenRows(HEADER_ROW);
+
+  // 預設 2000 列（Google Sheet 新增工作表預設 1000 列）
+  var maxRows = sheet.getMaxRows();
+  if (maxRows < DEFAULT_ROWS) {
+    sheet.insertRowsAfter(maxRows, DEFAULT_ROWS - maxRows);
+  } else if (maxRows > DEFAULT_ROWS) {
+    sheet.deleteRows(DEFAULT_ROWS + 1, maxRows - DEFAULT_ROWS);
+  }
+
+  // 預設隱藏新工作表（避免共用試算表時其他人直接看到）
+  sheet.hideSheet();
 }
 
 /**
